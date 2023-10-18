@@ -14,14 +14,13 @@ LABEL \
     org.silopolis.image.version="0.1" \
     org.silopolis.image.url="https://github.com/silopolis/silopolis-docker"
 
-
 #SHELL ["/bin/bash", "-o"]
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN set -eux; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
-        nginx python3-certbot-nginx; \
+        nginx; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \

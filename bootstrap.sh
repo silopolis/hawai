@@ -24,7 +24,7 @@ pip install -r requirements.txt
 echo "-- Build docker images"
 for i in base mariadb nginx lep lemp; do
   echo "-- Build '$i' docker image"
-  docker buildx build -t silopolis:$i -f $i.dockerfile .;
+  docker buildx build -t silopolis:$i -f docker/$i.dockerfile .;
 done
 
 echo "-- Boostrap Vagrant environment"

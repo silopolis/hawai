@@ -14,15 +14,19 @@ LABEL \
     org.silopolis.image.version="0.1" \
     org.silopolis.image.url="https://github.com/silopolis/silopolis-docker"
 
+ARG PHP_VERSION=7.4
 
 #SHELL ["/bin/bash", "-o"]
+ENV PHP_VERSION=$PHP_VERSION
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN set -eux; \
+    v="$PHP_VERSION"; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
-        php php-fpm php-curl php-gd php-mbstring php-xml php-imagick \
-        php-zip php-xmlrpc; \
+        php=$v php-fpm=$v php-curl=$v php-gd=$v \
+        php-mbstring=$v php-xml=$v php-zip=$v \
+        php-xmlrpc=$v php-imagick; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \

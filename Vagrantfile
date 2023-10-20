@@ -71,7 +71,7 @@ Vagrant.configure("2") do |config|
           guest: "#{ADM_SSH_GPORT}", guest_ip: "#{adm_net_ip}"
 
           adm.vm.provider "docker" do |dkr|
-          dkr.image="silopolis:base"
+          dkr.image="#{ADM_CT_IMAGE}"
           dkr.has_ssh = true
           dkr.privileged = true
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
@@ -101,7 +101,7 @@ Vagrant.configure("2") do |config|
           ip: "#{sto_host_ip}", netmask: "#{STO_NET_CIDR}"
 
           db.vm.provider "docker" do |dkr|
-          dkr.image = "silopolis:storage"
+          dkr.image = "#{STO_CT_IMAGE}"
           dkr.name = "#{db_host_name}"
           dkr.has_ssh = true
           dkr.privileged = true
@@ -139,7 +139,7 @@ Vagrant.configure("2") do |config|
           ip: "#{db_host_ip}", netmask: "#{DBA_NET_CIDR}"
 
         db.vm.provider "docker" do |dkr|
-          dkr.image = "silopolis:mariadb"
+          dkr.image = "#{DBA_CT_IMAGE}"
           dkr.name = "#{db_host_name}"
           dkr.has_ssh = true
           dkr.privileged = true
@@ -187,7 +187,7 @@ Vagrant.configure("2") do |config|
           ip: "#{app_net_ip}", netmask: "#{APP_NET_CIDR}"
 
         app.vm.provider "docker" do |dkr|
-          dkr.image = "silopolis:lemp"
+          dkr.image = "#{APP_CT_IMAGE}"
           dkr.has_ssh = true
           dkr.privileged = true
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
@@ -236,7 +236,7 @@ Vagrant.configure("2") do |config|
           host: "#{PXY_PORT02_HOST}", host_ip: "#{HOST_IP}",
           guest: "#{PXY_PORT02_GUEST}", guest_ip: "#{pxy_net_ip}"
         pxy.vm.provider "docker" do |dkr|
-          dkr.image="silopolis:nginx"
+          dkr.image="#{PXY_CT_IMAGE}"
           dkr.has_ssh = true
           dkr.privileged = true
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]

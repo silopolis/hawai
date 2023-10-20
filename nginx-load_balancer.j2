@@ -1,3 +1,16 @@
+{%- set is_true = ["on","y","yes","1","true"] -%}
+{%- set is_false = ["off","n","no","0","false"] -%}
+{%- set lba_hosts_num = PXY_HOSTS_NUM | int -%}
+{%- set lba_lb_alg = PXY_LB_ALG | replace('"','') -%}
+{%- set app_net_root = APP_NET_ROOT | replace('"','') -%}
+{%- set app_hosts_num = APP_HOSTS_NUM | int -%}
+{%- set app_net_ipmin = APP_NET_IPMIN | int -%}
+{%- if PXY_SSL_ON | replace('"','') | lower in is_true -%}
+    {%- set lba_ssl_on = true -%}
+{%- else -%}
+    {%- set lba_ssl_on = false -%}
+{%- endif -%}
+{%- set app_svc_fqdn = APP_SVC_FQDN | replace('"','') -%}
 proxy_http_version 1.1;
 proxy_cache_bypass $http_upgrade;
 
@@ -10,34 +23,63 @@ proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Host $host;
 proxy_set_header X-Forwarded-Port $server_port;
 
+proxy_connect_timeout   90;
+proxy_send_timeout      90;
+proxy_read_timeout      90;
+proxy_buffers           32 4k;
+
+client_max_body_size    10m;
+client_body_buffer_size 128k;
+
 upstream backend {
-    {{ LBA_LB_ALG }};
-    server 192.168.10.11;
-    server 192.168.10.12;
+    {%- if lba_hosts_num >= 2 %}
+        {%- if lba_lb_alg != '' %}
+    {{ lba_lb_alg }};
+        {%- endif %}
+    {%- endif %}
+    {%- for i in range(app_hosts_num) %}
+    server {{ app_net_root }}.{{ app_net_ipmin + i + 1 }};
+    {%- endfor %}
 }
 
+{% if lba_ssl_on == true -%}
 server {
-    listen {{ LBA_PORT01_GUEST }};
-    #listen [::]:{{ LBA_PORT01_GUEST }};
-    server_name {{ APP_SVC_FQDN }};
+    listen {{ PXY_PORT01_GUEST }};
+    listen [::]:{{ PXY_PORT01_GUEST }};
+    server_name {{ app_svc_fqdn }};
+
+    location / {
+        return 301 https://{{ app_svc_fqdn }}\$request_uri;
+    }
+}
+server {
+    listen {{ PXY_PORT02_GUEST }} default_server ssl;
+    listen [::]:{{ PXY_PORT02_GUEST }};
+    server_name {{ app_svc_fqdn }};
+
+    ssl on;
+    ssl_certificate      ssl/{{ app_svc_fqdn }}.crt;
+    ssl_certificate_key  ssl/{{ app_svc_fqdn }}.key;
+    # TLSv1.3 requires OpenSSL v1.1.1+, check with 'openssl version'
+    ssl_protocols        TLSv1.2 TLSv1.3;
+    ssl_ciphers RC4:HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache    shared:SSL:10m;
+    ssl_session_timeout  10m;
+
+    keepalive_timeout    60;
+
     location / {
         proxy_pass "http://backend/";
     }
 }
-
-# server {
-#     listen $LBA_PORT02_GUEST;
-#     #listen [::]:$LBA_PORT01_GUEST;
-#     server_name $APP_SVC_FQDN;
-# 
-#     # Path to SSL/TLS certificate
-#     ssl_certificate /etc/letsencrypt/live/domain_name/cert.pem;
-#     # Path to the private key
-#     ssl_certificate_key /etc/letsencrypt/live/domain_name/privkey.pem;
-#     # TLS version used
-#     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-# 
-#     location / {
-#         proxy_pass "http://backend/";
-#     }
-# }
+{% else -%}
+server {
+    listen {{ PXY_PORT01_GUEST }};
+    listen [::]:{{ PXY_PORT01_GUEST }};
+    server_name {{ app_svc_fqdn }};
+    location / {
+        proxy_pass "http://backend/";
+    }
+}
+{% endif -%}

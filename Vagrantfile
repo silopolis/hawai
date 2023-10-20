@@ -194,9 +194,9 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{app_host_name}"
         end
 
-        app.vm.provision "wp-setup",
+        app.vm.provision "app-#{APP_SVC_NAME}-setup",
           type: "shell",
-          inline: "/bin/bash /vagrant/wp_setup.sh"
+          inline: "/bin/bash /vagrant/app-#{APP_SVC_NAME}-setup.sh"
         app.vm.provision "letsencrypt",
           type: "shell",
           inline: "/bin/bash /vagrant/letsencrypt-setup.sh",

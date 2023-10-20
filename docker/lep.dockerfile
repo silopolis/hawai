@@ -21,12 +21,11 @@ ENV PHP_VERSION=$PHP_VERSION
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN set -eux; \
-    v="$PHP_VERSION"; \
+    php="php$PHP_VERSION"; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
-        php=$v php-fpm=$v php-curl=$v php-gd=$v \
-        php-mbstring=$v php-xml=$v php-zip=$v \
-        php-xmlrpc=$v php-imagick; \
+        $php $php-fpm $php-curl $php-gd $php-mbstring $php-xml $php-zip \
+        $php-xmlrpc php-imagick; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \

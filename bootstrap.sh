@@ -8,7 +8,7 @@ source .env
 
 if [ ! $(dpkg -l python3-venv | grep -q "^ii") ]; then
   echo "-- Install Python venv"
-  sudo apt install python3-venv;
+  sudo apt -qq -y install python3-venv;
 fi
 if [ ! -d .venv ]; then
   echo "-- Create Python '.venv' virtual environment"

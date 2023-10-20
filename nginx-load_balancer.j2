@@ -53,11 +53,10 @@ server {
     }
 }
 server {
-    listen {{ PXY_PORT02_GUEST }} default_server ssl;
+    listen {{ PXY_PORT02_GUEST }} ssl default_server;
     listen [::]:{{ PXY_PORT02_GUEST }};
     server_name {{ app_svc_fqdn }};
 
-    ssl on;
     ssl_certificate      ssl/{{ app_svc_fqdn }}.crt;
     ssl_certificate_key  ssl/{{ app_svc_fqdn }}.key;
     # TLSv1.3 requires OpenSSL v1.1.1+, check with 'openssl version'

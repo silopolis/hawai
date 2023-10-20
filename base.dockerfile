@@ -35,6 +35,10 @@ RUN set -eux; \
         openssh-server passwd sudo iproute2 git curl iputils-ping net-tools \
         wget curl systemd whois ca-certificates lsof;
 
+RUN set -eux; \
+    apt-get -qq -y -o=Dpkg::Use-Pty=0 install python3-pip; \
+    pip install j2cli;
+
 WORKDIR /lib/systemd/system/sysinit.target.wants/
 RUN  set -ux; \
     (for i in ./*; do \

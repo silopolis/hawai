@@ -20,8 +20,10 @@ ARG PHP_VERSION=7.4
 ENV PHP_VERSION=$PHP_VERSION
 ENV DEBIAN_FRONTEND noninteractive
 
+# Use deb.sury.org PHP packages
 RUN set -eux; \
     php="php$PHP_VERSION"; \
+    add-apt-repository ppa:ondrej/php; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
         $php $php-fpm $php-curl $php-gd $php-mbstring $php-xml $php-zip \

@@ -26,8 +26,8 @@ RUN set -eux; \
     add-apt-repository ppa:ondrej/php; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
-        $php $php-fpm $php-curl $php-gd $php-mbstring $php-xml $php-zip \
-        $php-xmlrpc php-imagick; \
+        $php $php-common php-pear $php-cli $php-fpm $php-curl $php-gd \
+        $php-mbstring $php-xml $php-zip $php-xmlrpc php-imagick; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \

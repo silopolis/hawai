@@ -20,7 +20,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN set -eux; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
-        nginx; \
+        nginx-extras; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \

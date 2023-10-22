@@ -29,6 +29,10 @@ RUN set -eux; \
 
 RUN systemctl enable nginx.service;
 
+RUN pipx install --include-deps certbot==2.7.2; \
+    pipx inject --include-deps --include-apps certbot certbot-dns-multi==4.14.2; \
+    pipx inject --include-deps --include-apps certbot certbot-nginx==2.7.2
+
 ENV DEBIAN_FRONTEND dialog
 
 VOLUME [ "/sys/fs/cgroup" ]

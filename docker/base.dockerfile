@@ -35,9 +35,21 @@ RUN set -eux; \
         openssh-server passwd sudo iproute2 git curl iputils-ping net-tools \
         wget curl systemd whois ca-certificates lsof;
 
+# Python environment setup with pipx
 RUN set -eux; \
-    apt-get -qq -y -o=Dpkg::Use-Pty=0 install python3-pip; \
-    pip install j2cli;
+    apt-get -qq -y -o=Dpkg::Use-Pty=0 install python3-pip python3-venv; \
+    python3 -m pip install --user pipx==1.2.0; \
+    python3 -m pipx ensurepath; \
+    printf '\n# pipx completions\neval "$(register-python-argcomplete pipx)"\n' \
+        >> ~/.bashrc; \
+    mkdir -p /opt/pipx; \
+    printf '\n# Set pipx directories\nexport PIPX_HOME="/opt/pipx"\nexport PIPX_BIN_DIR="/usr/local/bin"\n' \
+        >> ~/.profile;
+ENV PIPX_HOME /opt/pipx
+ENV PIPX_BIN_DIR /usr/local/bin
+
+# Support for Jinja templating
+RUN pipx install j2cli==0.3.10;
 
 WORKDIR /lib/systemd/system/sysinit.target.wants/
 RUN  set -ux; \

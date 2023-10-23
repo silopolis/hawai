@@ -1,0 +1,37 @@
+{%- set ssl_certbot_auth = SSL_CERTBOT_AUTH | replace('"','') -%}
+{%- set ssl_certbot_auth_id = SSL_CERTBOT_AUTH_ID | replace('"','') -%}
+{%- set ssl_certbot_auth_pwd = SSL_CERTBOT_AUTH_PWD | replace('"','') -%}
+{%- set ssl_certbot_auth_token = SSL_CERTBOT_AUTH_TOKEN | replace('"','') -%}
+# DNS authenticator
+dns_multi_provider={{ ssl_certbot_auth }}
+{% if ssl_certbot_auth == "cloudns" -%}
+# Target user ID (see https://www.cloudns.net/api-settings/)
+CLOUDNS_AUTH_ID={{ ssl_certbot_auth_id }}
+# The API sub user ID
+# CLOUDNS_SUB_AUTH_ID=1234
+# API password
+CLOUDNS_AUTH_PASSWORD={{ ssl_certbot_auth_pwd }}
+
+# API request timeout
+#CLOUDNS_HTTP_TIMEOUT=
+# Time between DNS propagation check
+#CLOUDNS_POLLING_INTERVAL=
+# Maximum waiting time for DNS propagation
+#CLOUDNS_PROPAGATION_TIMEOUT=
+# TTL of the TXT record used for the DNS challenge
+#CLOUDNS_TTL=
+{% endif -%}
+{% if ssl_certbot_auth == "infomaniak" -%}
+# Infomaniak API access token 
+INFOMANIAK_ACCESS_TOKEN={{ ssl_certbot_auth_token }}
+# Infomaniak API endpoint
+INFOMANIAK_ENDPOINT="https://api.infomaniak.com/"
+# API request timeout
+#INFOMANIAK_HTTP_TIMEOUT=
+# Time between DNS propagation check
+#INFOMANIAK_POLLING_INTERVAL=3
+# Maximum waiting time for DNS propagation
+#INFOMANIAK_PROPAGATION_TIMEOUT=30
+# The TTL of the TXT record used for the DNS challenge in seconds
+#INFOMANIAK_TTL=
+{% endif -%}

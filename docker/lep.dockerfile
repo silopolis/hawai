@@ -1,23 +1,23 @@
 # NGINX service image
 FROM silopolis:nginx
 
+ARG PHP_VERSION=7.4
+
 # OCI annotations to image
 LABEL \
-    org.silopolis.image.title="silopolis-php" \
-    org.silopolis.image.description="@silopolis' Ubuntu Focal:NGINX/PHP-FPM image" \
+    org.silopolis.image.title="silopolis-php-$PHP_VERSION" \
+    org.silopolis.image.description="@silopolis' Ubuntu Focal NGINX/PHP-FPM $PHP_VERSION image" \
     org.silopolis.image.authors="@silopolis" \
     org.silopolis.image.source="https://github.com/silopolis/silopolis-docker" \
     org.silopolis.image.documentation="NA" \
-    org.silopolis.image.base.name="docker.io/library/silopolis:nginx" \
+    org.silopolis.image.base.name="docker.io/library/silopolis:php:$PHP_VERSION" \
     org.silopolis.image.licenses="TBD" \
     org.silopolis.image.vendor="@silopolis" \
     org.silopolis.image.version="0.1" \
     org.silopolis.image.url="https://github.com/silopolis/silopolis-docker"
 
-ARG PHP_VERSION=7.4
-
 #SHELL ["/bin/bash", "-o"]
-ENV PHP_VERSION=$PHP_VERSION
+#ENV PHP_VERSION=$PHP_VERSION
 ENV DEBIAN_FRONTEND noninteractive
 
 # Use deb.sury.org PHP packages
@@ -27,7 +27,9 @@ RUN set -eux; \
     apt-get update; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install --no-install-recommends \
         $php $php-common php-pear $php-cli $php-fpm $php-curl $php-gd \
-        $php-mbstring $php-xml $php-zip $php-xmlrpc php-imagick; \
+        $php-mbstring $php-xml $php-zip $php-xmlrpc php-imagick \
+        $php-mysql mariadb-client; \
+        $php-pgsql postgresql-client; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \

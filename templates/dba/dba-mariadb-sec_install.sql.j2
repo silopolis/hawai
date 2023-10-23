@@ -1,0 +1,28 @@
+{%- set dba_root_pwd = DBA_ROOT_PWD | replace('"','') -%}
+{%- set dba_adm_user = DBA_ADM_USER | replace('"','') -%}
+{%- set dba_adm_pwd = DBA_ADM_PWD | replace('"','') -%}
+
+
+-- Use 'mysql' database
+USE mysql;
+-- Ensure root is using 'mysql_native_password' auth plugin
+UPDATE user SET plugin='mysql_native_password' WHERE User='root';
+-- Set root password
+UPDATE user SET Password=PASSWORD("{{ dba_root_pwd }}") WHERE User='root';
+-- Delete anonymous users
+DELETE FROM mysql.user WHERE User='';
+-- Delete remote root capabilities
+DELETE FROM mysql.user WHERE User='root'
+  AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+-- Drop database 'test'
+DROP DATABASE IF EXISTS test;
+-- Delete any lingering permissions on test database
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+-- Create database admin user
+CREATE USER '{{ dba_adm_user }}'@'localhost' 
+    IDENTIFIED BY '{{ dba_adm_pwd }}';
+GRANT ALL PRIVILEGES ON *.*
+    TO '{{ dba_adm_user }}'@'localhost';
+--    with GRANT OPTION;
+-- Apply changes immediately
+FLUSH PRIVILEGES;

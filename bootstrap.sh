@@ -27,6 +27,9 @@ for i in base mariadb nginx lep lemp; do
   docker buildx build -t silopolis:$i -f docker/$i.dockerfile .;
 done
 
+echo "-- Install Vagrant plugins"
+vagrant plugin install vagrant-scp #vagrant-env vagrant-hostmanager
+
 echo "-- Boostrap Vagrant environment"
 vagrant up --no-parallel
 # vagrant up networks

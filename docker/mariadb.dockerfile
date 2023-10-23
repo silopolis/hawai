@@ -4,7 +4,7 @@ FROM silopolis:base
 # OCI annotations to image
 LABEL \
     org.silopolis.image.title="silopolis-mariadb" \
-    org.silopolis.image.description="@silopolis' Ubuntu Focal:MariaDB image" \
+    org.silopolis.image.description="@silopolis' Ubuntu Focal MariaDB image" \
     org.silopolis.image.authors="@silopolis" \
     org.silopolis.image.source="https://github.com/silopolis/silopolis-docker" \
     org.silopolis.image.documentation="NA" \

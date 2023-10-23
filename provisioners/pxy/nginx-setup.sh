@@ -15,7 +15,7 @@ if [ -f /etc/nginx/sites-enabled/default ]; then
 fi
 
 echo "-- Create NGINX proxy configuration"
-j2 --format=env nginx-load_balancer.j2 ./.env \
+j2 --format=env "$CONF_DIR/pxy/pxy-nginx.conf.j2" .env \
   > "/etc/nginx/sites-available/$PXY_SVC_NAME.conf"
 
 

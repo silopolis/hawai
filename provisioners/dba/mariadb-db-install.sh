@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 #set -eux
 shopt -s dotglob
 
-cd /vagrant
+cd /vagrant || exit
 source .env
 
 systemctl stop mariadb

@@ -1,0 +1,19 @@
+{%- set dba_db01_name = DBA_DB01_NAME | replace('"','') -%}
+{%- set dba_db01_user = DBA_DB01_USER | replace('"','') -%}
+{%- set dba_db01_pwd = DBA_DB01_PWD | replace('"','') -%}
+{%- set dba_db01_pwd = DBA_DB01_PWD | replace('"','') -%}
+{%- set dba_net_addr = DBA_NET_ADDR | replace('"','') -%}
+{%- set dba_net_mask = DBA_NET_MASK | replace('"','') -%}
+{%- set dba_client_grant = dba_net_addr + "/" + dba_net_mask -%}
+
+
+-- create database
+CREATE DATABASE {{ dba_db01_name }};
+-- create database user
+CREATE USER "{{ dba_db01_user }}"@"{{ dba_client_grant }}"
+    IDENTIFIED BY "{{ dba_db01_pwd }}";
+-- set database user privileges
+GRANT ALL PRIVILEGES ON {{ dba_db01_name }}.* 
+    TO "{{ dba_db01_user }}"@"{{ dba_client_grant }}";
+-- apply changes
+FLUSH PRIVILEGES;

@@ -70,7 +70,7 @@ Vagrant.configure("2") do |config|
           host: "#{adm_ssh_hport}",# host_ip: "#{HOST_IP}",
           guest: "#{ADM_SSH_GPORT}", guest_ip: "#{adm_net_ip}"
 
-          adm.vm.provider "docker" do |dkr|
+        adm.vm.provider "docker" do |dkr|
           dkr.image="#{ADM_CT_IMAGE}"
           dkr.has_ssh = true
           dkr.privileged = true
@@ -84,36 +84,36 @@ Vagrant.configure("2") do |config|
   # ------------------------------------------------------------------------------
   # Storage hosts
   # ------------------------------------------------------------------------------
-  # TODO
+  # TODO NFS/Gluster shared storage
   if STO_HOSTS_NUM != 0
     (1..STO_HOSTS_NUM).each do |i|
-      db_host_name = "#{STO_HOSTS_NAME}#{i}"
+      sto_host_name = "#{STO_HOSTS_NAME}#{i}"
       adm_net_ip = "#{ADM_NET_ROOT}.#{STO_NET_IPMIN.to_i + i}"
       sto_host_ip = "#{STO_NET_ROOT}.#{STO_NET_IPMIN.to_i + i}"
 
-      config.vm.define "#{db_host_name}" do |db|
-        db.vm.hostname = "#{db_host_name}"
-        db.vm.network :private_network,
+      config.vm.define "#{sto_host_name}" do |sto|
+        sto.vm.hostname = "#{sto_host_name}"
+        sto.vm.network :private_network,
           docker_network__opt: "com.docker.network.container_iface_prefix=#{ADM_NET_NAME}",
           ip: "#{adm_net_ip}", netmask: "#{ADM_NET_CIDR}"
-        db.vm.network :private_network,
+        sto.vm.network :private_network,
           docker_network__opt: "com.docker.network.container_iface_prefix=#{STO_NET_NAME}",
           ip: "#{sto_host_ip}", netmask: "#{STO_NET_CIDR}"
 
-          db.vm.provider "docker" do |dkr|
+        sto.vm.provider "docker" do |dkr|
           dkr.image = "#{STO_CT_IMAGE}"
-          dkr.name = "#{db_host_name}"
+          dkr.name = "#{sto_host_name}"
           dkr.has_ssh = true
           dkr.privileged = true
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
         end
 
-        db.vm.provision "secure-install", type: "shell",
-          inline: "/bin/sh /vagrant/mariadb-secure-install.sh",
-          run: "never"
-        db.vm.provision "database-setup", type: "shell",
-          inline: "/bin/sh /vagrant/mariadb-setup-db.sh",
-          run: "never"
+        # sto.vm.provision "secure-install", type: "shell",
+        #   inline: "/bin/sh /vagrant/mariadb-secure-install.sh",
+        #   run: "never"
+        # sto.vm.provision "database-setup", type: "shell",
+        #   inline: "/bin/sh /vagrant/mariadb-setup-db.sh",
+        #   run: "never"
       end
     end
   end
@@ -128,6 +128,7 @@ Vagrant.configure("2") do |config|
       db_host_name = "#{DBA_HOSTS_NAME}#{i}"
       adm_net_ip = "#{ADM_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
       db_host_ip = "#{DBA_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
+      dba_prov_dir = "#{PROV_DIR}/dba"
 
       config.vm.define "#{db_host_name}" do |db|
         db.vm.hostname = "#{db_host_name}"
@@ -150,14 +151,15 @@ Vagrant.configure("2") do |config|
           mount_options: ["uid=106", "gid=107"]
           #owner: "mysql", group: "mysql"
 
-        db.vm.provision "install-db", type: "shell",
-          inline: "/bin/bash /vagrant/mariadb-install-db.sh"
+        db.vm.provision "dba-db-install", type: "shell",
+          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-install.sh"
           #run: "never"
-        db.vm.provision "secure-install", type: "shell",
-          inline: "/bin/bash /vagrant/mariadb-secure-install.sh"# #{db_host_ip}"
+        db.vm.provision "dba-db-sec_install", type: "shell",
+          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-sec_install.sh"
+          args: "#{db_host_ip}"
           #run: "never"
-        db.vm.provision "database-setup", type: "shell",
-          inline: "/bin/bash /vagrant/mariadb-setup-db.sh"
+        db.vm.provision "dba-db-add", type: "shell",
+          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-add.sh"
           #run: "never"
       end
     end
@@ -173,6 +175,7 @@ Vagrant.configure("2") do |config|
       adm_net_ip = "#{ADM_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       dba_net_ip = "#{DBA_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       app_net_ip = "#{APP_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
+      app_prov_dir = "#{PROV_DIR}/app"
 
       config.vm.define "#{app_host_name}" do |app|
         app.vm.hostname = "#{app_host_name}"
@@ -194,15 +197,11 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{app_host_name}"
         end
 
-        app.vm.provision "app-#{APP_SVC_NAME}-setup",
-          type: "shell",
-          inline: "/bin/bash /vagrant/app-#{APP_SVC_NAME}-setup.sh"
-        app.vm.provision "letsencrypt",
-          type: "shell",
-          inline: "/bin/bash /vagrant/letsencrypt-setup.sh",
-          run: "never"
-
         app.vm.synced_folder "data/#{app_host_name}/#{APP_SVC_NAME}", "/var/www/wordpress"
+
+        app.vm.provision "app-#{APP_SVC_NAME}-setup", type: "shell",
+          inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-setup.sh"
+
       end
     end
   end
@@ -217,6 +216,7 @@ Vagrant.configure("2") do |config|
       adm_net_ip = "#{ADM_NET_ROOT}.#{PXY_NET_IPMIN.to_i + i}"
       app_net_ip = "#{APP_NET_ROOT}.#{PXY_NET_IPMIN.to_i + i}"
       pxy_net_ip = "#{PXY_NET_ROOT}.#{PXY_NET_IPMIN.to_i + i}"
+      pxy_prov_dir = "#{PROV_DIR}/pxy"
 
       config.vm.define "#{pxy_host_name}" do |pxy|
         pxy.vm.hostname = "#{pxy_host_name}"
@@ -243,9 +243,14 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{pxy_host_name}"
         end
 
-        pxy.vm.provision "nginx_proxy-setup",
+        if IS_TRUE.include?(PXY_SSL_ON)
+          app.vm.provision "ssl-cert-setup",
+            type: "shell",
+            inline: "/bin/bash #{PROV_DIR}/ssl/ssl-cert-setup.sh"
+        end
+        pxy.vm.provision "pxy-#{PXY_SVC_TYPE}-setup",
           type: "shell",
-          inline: "/bin/bash /vagrant/nginx-proxy-setup.sh"
+          inline: "/bin/bash #{pxy_prov_dir}/#{PXY_SVC_TYPE}-setup.sh"
       end
     end
   end

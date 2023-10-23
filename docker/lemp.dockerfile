@@ -4,7 +4,7 @@ FROM silopolis:lep
 # OCI annotations to image
 LABEL \
     org.silopolis.image.title="silopolis-php" \
-    org.silopolis.image.description="@silopolis' Ubuntu Focal:NGINX/PHP-FPM image" \
+    org.silopolis.image.description="@silopolis' Ubuntu Focal GINX/PHP-FPM image" \
     org.silopolis.image.authors="@silopolis" \
     org.silopolis.image.source="https://github.com/silopolis/silopolis-docker" \
     org.silopolis.image.documentation="NA" \

@@ -29,12 +29,14 @@ RUN set -eux; \
         $php $php-common php-pear $php-cli $php-fpm $php-curl $php-gd \
         $php-mbstring $php-xml $php-zip $php-xmlrpc php-imagick \
         $php-mysql mariadb-client; \
-        $php-pgsql postgresql-client; \
+    #    $php-pgsql postgresql-client; \
     apt-get -qq clean; \
     #apt-get -qq purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     apt-get -qq -y autoremove; \
     apt-get -qq -y autoclean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# TODO PHP config
 
 RUN systemctl enable nginx.service;
 

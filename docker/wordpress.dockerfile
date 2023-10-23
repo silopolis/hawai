@@ -26,6 +26,8 @@ RUN echo "-- Downloading $APP_NAME archive."; \
         echo "-- $APP_NAME archive successfully downloaded."; \
     echo "-- Extracting $APP_NAME archive..."; \
     tar zxf "$APP_ARCH_NAME"; \
+    echo "-- Creating app root directory: $APP_ROOT_DIR"; \
+    mkdir -p $APP_ROOT_DIR; \
     echo "-- Moving files to $APP_ROOT_DIR"; \
     mv "$APP_SVC_NAME"/* "$APP_ROOT_DIR/"; \
     rmdir "$APP_SVC_NAME"; \

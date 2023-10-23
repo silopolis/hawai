@@ -26,9 +26,10 @@ RUN set -eux; \
         | debconf-set-selections; \
     #apt-get -qq -y -o=Dpkg::Use-Pty=0 --no-install-recommends install \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install \
-        apt-utils debconf-utils systemd;
+        apt-utils debconf-utils software-properties-common \
+        systemd;
 
-# FXIME openssh-server setup: invoke-rc.d: policy-rc.d denied execution of start.
+# FIXME openssh-server setup: invoke-rc.d: policy-rc.d denied execution of start.
 RUN set -eux; \
     #apt-get -qq -y -o=Dpkg::Use-Pty=0 --no-install-recommends install \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install \
@@ -37,8 +38,9 @@ RUN set -eux; \
 
 # Python environment setup with pipx
 RUN set -eux; \
-    apt-get -qq -y -o=Dpkg::Use-Pty=0 install python3-pip python3-venv; \
-    python3 -m pip install --user pipx==1.2.0; \
+    apt-get -qq -y -o=Dpkg::Use-Pty=0 install \
+        python3-pip python3-venv; \
+    python3 -m pip install --user pipx; \
     python3 -m pipx ensurepath; \
     printf '\n# pipx completions\neval "$(register-python-argcomplete pipx)"\n' \
         >> ~/.bashrc; \
@@ -47,9 +49,11 @@ RUN set -eux; \
         >> ~/.profile;
 ENV PIPX_HOME /opt/pipx
 ENV PIPX_BIN_DIR /usr/local/bin
+ENV PATH="/root/.local/bin:$PATH"
 
 # Support for Jinja templating
-RUN pipx install j2cli==0.3.10;
+RUN set -eux; \
+    pipx install j2cli;
 
 WORKDIR /lib/systemd/system/sysinit.target.wants/
 RUN  set -ux; \

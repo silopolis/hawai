@@ -9,6 +9,9 @@ load envfile if File.exists?(envfile)
 # Trick to add personal pub key to the guests
 #ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
+# FIXME Add DNS management
+# FIXME Containers ifaces naming stopped working !?
+
 Vagrant.configure("2") do |config|
 #  load_env.hostmanager.enabled = true
 #  load_env.hostmanager.manage_host = true
@@ -55,6 +58,9 @@ Vagrant.configure("2") do |config|
   # ------------------------------------------------------------------------------
   # Admin/Bastion hosts
   # ------------------------------------------------------------------------------
+  # TODO Allow SSH only on Vagrant and public ifaces
+  # TODO Add brute force protection
+  # TODO Add one time login support
   if ADM_HOSTS_NUM != 0
     (1..ADM_HOSTS_NUM).each do |i|
       adm_host_name = "#{ADM_HOSTS_NAME}#{i}"
@@ -84,7 +90,7 @@ Vagrant.configure("2") do |config|
   # ------------------------------------------------------------------------------
   # Storage hosts
   # ------------------------------------------------------------------------------
-  # TODO NFS/Gluster shared storage
+  # TODO Add NFS/Gluster shared storage support
   if STO_HOSTS_NUM != 0
     (1..STO_HOSTS_NUM).each do |i|
       sto_host_name = "#{STO_HOSTS_NAME}#{i}"
@@ -123,6 +129,7 @@ Vagrant.configure("2") do |config|
   # DB hosts
   # ------------------------------------------------------------------------------
   # FIXME ONLY ONE DB host supported
+  # TODO Allow dbadmin from remote (admin network) ?
   if DBA_HOSTS_NUM != 0
     (1..DBA_HOSTS_NUM).each do |i|
       db_host_name = "#{DBA_HOSTS_NAME}#{i}"

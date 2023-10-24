@@ -183,6 +183,8 @@ Vagrant.configure("2") do |config|
       dba_net_ip = "#{DBA_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       app_net_ip = "#{APP_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       app_prov_dir = "#{PROV_DIR}/app"
+      app_data_dir = "data/#{app_host_name}/#{APP_SVC_NAME}"
+      app_root_dir = "#{APPS_ROOT}/#{APP_SVC_NAME}"
 
       config.vm.define "#{app_host_name}" do |app|
         app.vm.hostname = "#{app_host_name}"
@@ -204,11 +206,16 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{app_host_name}"
         end
 
-        app.vm.synced_folder "data/#{app_host_name}/#{APP_SVC_NAME}", "/var/www/wordpress"
+        app.vm.synced_folder "#{app_data_dir}", "#{app_root_dir}"
 
-        app.vm.provision "app-#{APP_SVC_NAME}-setup", type: "shell",
-          inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-setup.sh"
-
+        app.vm.provision "app-#{APP_SVC_NAME}-install",
+          type: "shell",
+          inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-install.sh $*",
+          args: "#{app_host_name}"
+        app.vm.provision "app-#{APP_SVC_NAME}-config",
+          type: "shell",
+          inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-config.sh $*",
+          args: "#{app_host_name}"
       end
     end
   end

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -eux
-shopt -s dotglob
+set -e #ux
 
+pxy_host_name="$1"
 cd /vagrant || exit
 source .env
 

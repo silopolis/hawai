@@ -27,7 +27,7 @@ RUN set -eux; \
     #apt-get -qq -y -o=Dpkg::Use-Pty=0 --no-install-recommends install \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install \
         apt-utils debconf-utils software-properties-common \
-        systemd;
+        systemd dialog;
 
 # FIXME openssh-server setup: invoke-rc.d: policy-rc.d denied execution of start.
 RUN set -eux; \

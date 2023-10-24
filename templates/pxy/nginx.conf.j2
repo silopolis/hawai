@@ -94,8 +94,8 @@ server {
 }
 {% else -%}
 server {
-    listen {{ PXY_PORT01_GUEST }} http2;
-    listen [::]:{{ PXY_PORT01_GUEST }} http2;
+    listen {{ PXY_PORT01_GUEST }};
+    listen [::]:{{ PXY_PORT01_GUEST }};
     server_name {{ app_svc_fqdn }};
     location / {
         proxy_pass "http://backend/";

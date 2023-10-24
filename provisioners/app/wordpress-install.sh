@@ -1,12 +1,13 @@
 #!/bin/bash
 
 set -e #ux
+shopt -s dotglob
 
 cd /vagrant || exit
 source .env
 
 app_host_name="$1"
-host_data_dir="$DATA_DIR/$app_host_name"
+host_data_dir="$DATA_DIR"
 app_data_dir="$host_data_dir/$APP_SVC_NAME"
 app_root_dir="$APPS_ROOT/$APP_SVC_NAME"
 
@@ -18,13 +19,13 @@ if [ -z "$(ls -A "$app_root_dir")" ]; then
   echo "-- $APP_NAME not installed."
   if [ ! -f wordpress.tar.gz ]; then
     echo "-- $APP_NAME archive not found. Downloading..."
-    wget -q -O "$APP_SVC_NAME.tar.gz" "$APP_ARCH_URL" && \
+    wget -q -O "$APP_SVC_TYPE.tar.gz" "$APP_ARCH_URL" && \
       echo "-- $APP_NAME archive successfully downloaded."
   fi
   echo "-- Extracting $APP_NAME archive..."
-  tar zxf "$APP_SVC_NAME.tar.gz"
-  # echo "-- Moving extracted directory to $app_root_dir"
-  # mv "$APP_SVC_NAME" "$app_root_dir"
+  tar zxf "$APP_SVC_TYPE.tar.gz"
+  echo "-- Moving files to $app_root_dir"
+  mv "$APP_SVC_TYPE"/* "$app_root_dir"/
 fi
 
 echo "-- Setting up ownership and rights"
@@ -34,7 +35,8 @@ chmod -R 755 "$app_root_dir"
 if [ "$2" == "--clean" ]; then
   if [ -f wordpress.tar.gz ]; then
     echo "-- Removing $APP_NAME archive"
-    rm "$APP_SVC_NAME.tar.gz"
+    rm -v "$APP_SVC_TYPE.tar.gz"
+    rmdir -v "$APP_SVC_TYPE"
   fi
 fi
 

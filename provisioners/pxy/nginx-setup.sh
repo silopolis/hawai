@@ -2,9 +2,11 @@
 
 set -e #ux
 
-pxy_host_name="$1"
 cd /vagrant || exit
 source .env
+
+pxy_host_name="$1"
+tmpl_dir="$TMPL_DIR/pxy"
 
 # APP_NET_IP="$APP_NET_ROOT.$((APP_NET_IPMIN + 1))"
 
@@ -15,7 +17,7 @@ if [ -f /etc/nginx/sites-enabled/default ]; then
 fi
 
 echo "-- Create NGINX proxy configuration"
-j2 --format=env "$TMPL_DIR/pxy/nginx.conf.j2" .env \
+j2 --format=env "$tmpl_dir/nginx.conf.j2" .env \
   > "/etc/nginx/sites-available/$PXY_SVC_NAME.conf"
 
 

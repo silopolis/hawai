@@ -21,16 +21,17 @@ LABEL \
     org.silopolis.image.version="0.1" \
     org.silopolis.image.url="https://github.com/silopolis/silopolis-docker"
 
-RUN echo "-- Downloading $APP_NAME archive."; \
+RUN set -eux;\
+    echo "-- Downloading $APP_NAME archive."; \
     wget -q -O "$APP_ARCH_NAME" "$APP_ARCH_URL" && \
         echo "-- $APP_NAME archive successfully downloaded."; \
     echo "-- Extracting $APP_NAME archive..."; \
     tar zxf "$APP_ARCH_NAME"; \
-    echo "-- Creating app root directory: $APP_ROOT_DIR"; \
-    mkdir -p $APP_ROOT_DIR; \
-    echo "-- Moving files to $APP_ROOT_DIR"; \
-    mv "$APP_SVC_NAME"/* "$APP_ROOT_DIR/"; \
-    rmdir "$APP_SVC_NAME"; \
+    # echo "-- Creating app root directory: $APP_ROOT_DIR"; \
+    # mkdir -p $APP_ROOT_DIR; \
+    echo "-- Moving app to $APP_ROOT_DIR"; \
+    mv "$APP_SVC_NAME" "$APP_ROOT_DIR"; \
+    # rmdir "$APP_SVC_NAME"; \
     echo "-- Removing $APP_NAME archive"; \
     rm "$APP_ARCH_NAME"; \
     echo "-- Setting up ownership and rights"; \

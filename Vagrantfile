@@ -258,13 +258,15 @@ Vagrant.configure("2") do |config|
         end
 
         if IS_TRUE.include?(PXY_SSL_ON)
-          app.vm.provision "ssl-cert-setup",
+          pxy.vm.provision "ssl-cert-setup",
             type: "shell",
-            inline: "/bin/bash #{PROV_DIR}/ssl/ssl-cert-setup.sh"
-        end
+            inline: "/bin/bash #{PROV_DIR}/ssl/cert-setup.sh $*",
+            args: "#{pxy_host_name}"
+          end
         pxy.vm.provision "pxy-#{PXY_SVC_TYPE}-setup",
           type: "shell",
-          inline: "/bin/bash #{pxy_prov_dir}/#{PXY_SVC_TYPE}-setup.sh"
+          inline: "/bin/bash #{pxy_prov_dir}/#{PXY_SVC_TYPE}-setup.sh $*",
+          args: "#{pxy_host_name}"
       end
     end
   end

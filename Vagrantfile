@@ -152,10 +152,10 @@ Vagrant.configure("2") do |config|
           #owner: "mysql", group: "mysql"
 
         db.vm.provision "dba-db-install", type: "shell",
-          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-install.sh"
+          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-install.sh"
           #run: "never"
         db.vm.provision "dba-db-sec_install", type: "shell",
-          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-sec_install.sh"
+          inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-sec_install.sh",
           args: "#{db_host_ip}"
           #run: "never"
         db.vm.provision "dba-db-add", type: "shell",

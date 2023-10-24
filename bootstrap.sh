@@ -13,6 +13,8 @@ source .env
 
 ./docker/build_images.sh
 
+# TODO Add Docker setup from upstream repository
+
 ./scripts/vagrant_setup.sh
 
 echo "-- Boostrap Vagrant environment"

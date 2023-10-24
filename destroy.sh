@@ -5,6 +5,9 @@ shopt -s dotglob
 
 source .env
 
+# TODO Rename as 'purge'
+# TODO Modularize like bootstrap.sh
+
 echo "-- Destroy Vagrant environment"
 vagrant destroy -f
 rm -rf .vagrant/*
@@ -26,5 +29,4 @@ sudo rm -rf data/maria1/mysql/*
 sudo rm -rf data/wpress1/wordpress/*
 
 # echo "-- Purge Python virtual environment"
-# deactivate
 # rm -rf .venv

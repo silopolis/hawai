@@ -22,4 +22,6 @@ pip install --upgrade setuptools pip
 echo "-- Install Python requirements in venv"
 pip install -r ../requirements.txt
 
+# TODO Add pipx setup ?
+
 cd "$cwd"

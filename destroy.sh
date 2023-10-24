@@ -8,6 +8,12 @@ source .env
 # TODO Rename as 'purge'
 # TODO Modularize like bootstrap.sh
 
+echo "-- Uninstall SSL certificate"
+vagrant provision proxy1 --provision-with ssl-cert-uninstall
+
+echo "-- Revoke SSL certificate"
+vagrant provision proxy1 --provision-with ssl-cert-revoke
+
 echo "-- Destroy Vagrant environment"
 vagrant destroy -f
 rm -rf .vagrant/*
@@ -27,6 +33,7 @@ docker buildx prune -af
 echo "-- Delete data"
 sudo rm -rf data/maria1/mysql/*
 sudo rm -rf data/wpress1/wordpress/*
+sudo find data/ssl/ -type f | sudo xargs rm -vf
 
 echo "-- Purge Python virtual environment"
 rm -rf .venv

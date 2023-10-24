@@ -81,6 +81,13 @@ fi
 systemctl restart php7.4-fpm
 
 # Configure NGINX
+# TODO Split NGINX config out
+# TODO Review NGINX modules enabled by default
+echo "-- Disable useless NGINX modules"
+if [ -f /etc/nginx/modules-enabled/50-mod-nchan.conf ]; then
+  rm /etc/nginx/modules-enabled/50-mod-nchan.conf
+fi
+
 echo "-- Disable NGINX default configuration"
 if [ -f /etc/nginx/sites-enabled/default ]; then
   rm /etc/nginx/sites-enabled/default

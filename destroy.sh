@@ -28,5 +28,5 @@ echo "-- Delete data"
 sudo rm -rf data/maria1/mysql/*
 sudo rm -rf data/wpress1/wordpress/*
 
-# echo "-- Purge Python virtual environment"
-# rm -rf .venv
+echo "-- Purge Python virtual environment"
+rm -rf .venv

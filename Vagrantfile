@@ -154,7 +154,7 @@ Vagrant.configure("2") do |config|
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
         end
 
-        db.vm.synced_folder "data/#{db_host_name}/#{DBA_DATA_DIR}", "/var/lib/mysql",
+        db.vm.synced_folder "#{DBA_DATA_DIR}", "#{DBA_ROOT_DIR}",
           mount_options: ["uid=106", "gid=107"]
           #owner: "mysql", group: "mysql"
 
@@ -183,7 +183,7 @@ Vagrant.configure("2") do |config|
       dba_net_ip = "#{DBA_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       app_net_ip = "#{APP_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       app_prov_dir = "/vagrant/#{PROV_DIR}/app"
-      app_data_dir = "data/#{app_host_name}/#{APP_SVC_NAME}"
+      app_data_dir = "data/#{APP_SVC_NAME}"
       app_root_dir = "#{APPS_ROOT}/#{APP_SVC_NAME}"
 
       config.vm.define "#{app_host_name}" do |app|
@@ -206,7 +206,9 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{app_host_name}"
         end
 
-        app.vm.synced_folder "#{app_data_dir}", "#{app_root_dir}"
+        app.vm.synced_folder "#{app_data_dir}", "#{app_root_dir}",
+          mount_options: ["uid=33", "gid=33"]
+          #owner: "www-data", group: "www-data"
 
         app.vm.provision "app-#{APP_SVC_NAME}-install",
           type: "shell",
@@ -259,7 +261,8 @@ Vagrant.configure("2") do |config|
         end
 
         if IS_TRUE.include?(PXY_SSL_ON)    
-          pxy.vm.synced_folder "#{SSL_DATA_DIR}", "#{SSL_ROOT_DIR}" 
+          pxy.vm.synced_folder "#{SSL_DATA_DIR}", "#{SSL_ROOT_DIR}"
+
           pxy.vm.provision "ssl-certbot-setup",
             type: "shell",
             inline: "/bin/bash #{ssl_prov_dir}/certbot-setup.sh $*",

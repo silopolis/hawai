@@ -5,8 +5,9 @@ server {
     listen {{ APP_PORT01_HOST }};
     server_name {{ app_svc_fqdn }};
     root {{ app_root_dir }};
-    ## This is set in global http block so it's not needed here.
-    #index index.php;
+    ## This is set in global http block so it should not be needed here.
+    ## FIXME So, why does it break if not there (trying to list directory)
+    index index.php;
     client_max_body_size 10M;
 
     location / {

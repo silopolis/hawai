@@ -3,23 +3,24 @@
 
 server {
     listen {{ APP_PORT01_HOST }};
-    root {{ app_root_dir }};
-    index index.php index.html index.htm;
     server_name {{ app_svc_fqdn }};
-    client_max_body_size 500M;
+    root {{ app_root_dir }};
+    ## This is set in global http block so it's not needed here.
+    #index index.php;
+    client_max_body_size 10M;
 
     location / {
-        try_files \$uri \$uri/ /index.php?\$args;
+        ## This is cool because no php is touched for static content.
+        ## include the "?$args" part so non-default permalinks doesn't break
+        ## when using query string
+        try_files $uri $uri/ /index.php?$args;
     }
 
+    ## Global restrictions
+    ## Designed to be included in any server {} block.
     location = /favicon.ico {
         log_not_found off;
         access_log off;
-    }
-
-    location ~*.(js|css|png|jpg|jpeg|gif|ico)$ {
-        expires max;
-        log_not_found off;
     }
 
     location = /robots.txt {
@@ -28,10 +29,32 @@ server {
         access_log off;
     }
 
+    ## Deny all attempts to access hidden files such as .htaccess, .htpasswd.
+    ## Keep logging the requests to parse later (or to pass to firewall
+    ## utilities such as fail2ban)
+    location ~ /\. {
+        deny all;
+    }
+
+    ## Deny access to any files with a .php extension in the uploads directory
+    ## Works in sub-directory installs and also in multisite network
+    ## Keep logging the requests to parse later (or to pass to firewall
+    ## utilities such as fail2ban)
+    location ~* /(?:uploads|files)/.*\.php$ {
+        deny all;
+    }
+
+    location ~*.(js|css|png|jpg|jpeg|gif|ico)$ {
+        expires max;
+        log_not_found off;
+    }
+
     location ~ \.php$ {
-         include snippets/fastcgi-php.conf;
-         fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-         include fastcgi_params;
+        ## NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        include snippets/fastcgi-php.conf;
+        fastcgi_intercept_errors on;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
     }
 }

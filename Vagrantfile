@@ -211,7 +211,7 @@ Vagrant.configure("2") do |config|
         app.vm.provision "app-#{APP_SVC_NAME}-install",
           type: "shell",
           inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-install.sh $*",
-          args: "#{app_host_name}"
+          args: "#{app_host_name} --clean"
         app.vm.provision "app-#{APP_SVC_NAME}-config",
           type: "shell",
           inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-config.sh $*",

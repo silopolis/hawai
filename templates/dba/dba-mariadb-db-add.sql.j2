@@ -1,19 +1,19 @@
-{%- set dba_db01_name = DBA_DB01_NAME | replace('"','') -%}
-{%- set dba_db01_user = DBA_DB01_USER | replace('"','') -%}
-{%- set dba_db01_pwd = DBA_DB01_PWD | replace('"','') -%}
-{%- set dba_db01_pwd = DBA_DB01_PWD | replace('"','') -%}
-{%- set dba_net_addr = DBA_NET_ADDR | replace('"','') -%}
-{%- set dba_net_mask = DBA_NET_MASK | replace('"','') -%}
-{%- set dba_client_grant = dba_net_addr + "/" + dba_net_mask -%}
+{%- set db_name = DBA_DB01_NAME | replace('"','') -%}
+{%- set db_user = DBA_DB01_USER | replace('"','') -%}
+{%- set db_password = DBA_DB01_PWD | replace('"','') -%}
+{%- set db_password = DBA_DB01_PWD | replace('"','') -%}
+{%- set dba_net_addr = APP_NET_ADDR | replace('"','') -%}
+{%- set dba_net_mask = APP_NET_MASK | replace('"','') -%}
+{%- set dba_grant_from = dba_net_addr + "/" + dba_net_mask -%}
 
 
 -- create database
-CREATE DATABASE {{ dba_db01_name }};
+CREATE DATABASE {{ db_name }};
 -- create database user
-CREATE USER "{{ dba_db01_user }}"@"{{ dba_client_grant }}"
-    IDENTIFIED BY "{{ dba_db01_pwd }}";
+CREATE USER "{{ db_user }}"@"{{ dba_grant_from }}"
+    IDENTIFIED BY "{{ db_password }}";
 -- set database user privileges
-GRANT ALL PRIVILEGES ON {{ dba_db01_name }}.* 
-    TO "{{ dba_db01_user }}"@"{{ dba_client_grant }}";
+GRANT ALL PRIVILEGES ON {{ db_name }}.* 
+    TO "{{ db_user }}"@"{{ dba_grant_from }}";
 -- apply changes
 FLUSH PRIVILEGES;

@@ -2,8 +2,8 @@
 {%- set db_user = DBA_DB01_USER | replace('"','') -%}
 {%- set db_password = DBA_DB01_PWD | replace('"','') -%}
 {%- set db_password = DBA_DB01_PWD | replace('"','') -%}
-{%- set dba_net_addr = APP_NET_ADDR | replace('"','') -%}
-{%- set dba_net_mask = APP_NET_MASK | replace('"','') -%}
+{%- set dba_net_addr = DBA_NET_ADDR | replace('"','') -%}
+{%- set dba_net_mask = DBA_NET_MASK | replace('"','') -%}
 {%- set dba_grant_from = dba_net_addr + "/" + dba_net_mask -%}
 
 

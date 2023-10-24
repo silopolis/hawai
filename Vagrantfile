@@ -135,7 +135,7 @@ Vagrant.configure("2") do |config|
       db_host_name = "#{DBA_HOSTS_NAME}#{i}"
       adm_net_ip = "#{ADM_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
       db_host_ip = "#{DBA_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
-      dba_prov_dir = "#{PROV_DIR}/dba"
+      dba_prov_dir = "/vagrant/#{PROV_DIR}/dba"
 
       config.vm.define "#{db_host_name}" do |db|
         db.vm.hostname = "#{db_host_name}"
@@ -182,7 +182,7 @@ Vagrant.configure("2") do |config|
       adm_net_ip = "#{ADM_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       dba_net_ip = "#{DBA_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
       app_net_ip = "#{APP_NET_ROOT}.#{APP_NET_IPMIN.to_i + i}"
-      app_prov_dir = "#{PROV_DIR}/app"
+      app_prov_dir = "/vagrant/#{PROV_DIR}/app"
       app_data_dir = "data/#{app_host_name}/#{APP_SVC_NAME}"
       app_root_dir = "#{APPS_ROOT}/#{APP_SVC_NAME}"
 
@@ -230,7 +230,8 @@ Vagrant.configure("2") do |config|
       adm_net_ip = "#{ADM_NET_ROOT}.#{PXY_NET_IPMIN.to_i + i}"
       app_net_ip = "#{APP_NET_ROOT}.#{PXY_NET_IPMIN.to_i + i}"
       pxy_net_ip = "#{PXY_NET_ROOT}.#{PXY_NET_IPMIN.to_i + i}"
-      pxy_prov_dir = "#{PROV_DIR}/pxy"
+      pxy_prov_dir = "/vagrant/#{PROV_DIR}/pxy"
+      ssl_prov_dir = "/vagrant/#{PROV_DIR}/ssl"
 
       config.vm.define "#{pxy_host_name}" do |pxy|
         pxy.vm.hostname = "#{pxy_host_name}"
@@ -257,12 +258,36 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{pxy_host_name}"
         end
 
-        if IS_TRUE.include?(PXY_SSL_ON)
-          pxy.vm.provision "ssl-cert-setup",
+        if IS_TRUE.include?(PXY_SSL_ON)    
+          pxy.vm.synced_folder "#{SSL_DATA_DIR}", "#{SSL_ROOT_DIR}" 
+          pxy.vm.provision "ssl-certbot-setup",
             type: "shell",
-            inline: "/bin/bash #{PROV_DIR}/ssl/cert-setup.sh $*",
+            inline: "/bin/bash #{ssl_prov_dir}/certbot-setup.sh $*",
             args: "#{pxy_host_name}"
-          end
+          pxy.vm.provision "ssl-cert-create",
+            type: "shell",
+            inline: "/bin/bash #{ssl_prov_dir}/cert-create.sh $*",
+            args: "#{pxy_host_name}"
+          pxy.vm.provision "ssl-cert-install",
+            type: "shell",
+            inline: "/bin/bash #{ssl_prov_dir}/cert-install.sh $*",
+            args: "#{pxy_host_name}"
+          pxy.vm.provision "ssl-cert-renew",
+            type: "shell",
+            inline: "/bin/bash #{ssl_prov_dir}/cert-renew.sh $*",
+            args: "#{pxy_host_name}",
+            run: "never"
+          pxy.vm.provision "ssl-cert-uninstall",
+            type: "shell",
+            inline: "/bin/bash #{ssl_prov_dir}/cert-uninstall.sh $*",
+            args: "#{pxy_host_name}",
+            run: "never"
+          pxy.vm.provision "ssl-cert-revoke",
+            type: "shell",
+            inline: "/bin/bash #{ssl_prov_dir}/cert-revoke.sh $*",
+            args: "#{pxy_host_name}",
+            run: "never"
+        end
         pxy.vm.provision "pxy-#{PXY_SVC_TYPE}-setup",
           type: "shell",
           inline: "/bin/bash #{pxy_prov_dir}/#{PXY_SVC_TYPE}-setup.sh $*",

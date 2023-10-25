@@ -1,0 +1,39 @@
+{%- set is_true = IS_TRUE -%}
+{%- if LOG_UDP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set udp_input = true -%}
+{%- else -%}
+    {%- set udp_input = false -%}
+{%- endif -%}
+{%- if LOG_TCP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set tcp_input = true -%}
+{%- else -%}
+    {%- set tcp_input = false -%}
+{%- endif -%}
+{%- if LOG_RELP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set relp_input = true -%}
+{%- else -%}
+    {%- set relp_input = false -%}
+{%- endif -%}
+{%- set log_root_dir = LOG_ROOT_DIR | replace('"','') -%}
+
+{# ## Incoming remote logs sorting template
+$template RemoteLogs,"{{ log_root_dir }}/%HOSTNAME%/%PROGRAMNAME%.log"
+*.* ?RemoteLogs
+& ~ #}
+
+ruleset(name="remote"){
+  if ($fromhost-ip != "127.0.0.1") then -?DynaFile
+}
+
+
+{# $template DynamicFile,"{{ log_root_dir }}/%HOSTNAME%/forwarded-logs.log" 
+*.* -?DynamicFile #}
+
+{# $template syslog,"{{ log_root_dir }}/%fromhost%/syslog.log"
+*.* ?syslog #}
+
+{# $template RemoteAuth, "{{ log_root_dir }}/%HOSTNAME%/%PROGRAMNAME%.log"
+$template RemoteMsg, "{{ log_root_dir }}/%HOSTNAME%/%PROGRAMNAME%.log" #}
+
+{# authpriv.* ?RemoteAuth
+*.info;mail.none;authpriv.none;cron.none ?RemoteMsg #}

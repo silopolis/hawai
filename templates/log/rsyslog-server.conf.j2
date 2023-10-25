@@ -1,0 +1,118 @@
+{%- set is_true = IS_TRUE -%}
+{%- if LOG_UDP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set udp_input = true -%}
+{%- else -%}
+    {%- set udp_input = false -%}
+{%- endif -%}
+{%- if LOG_TCP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set tcp_input = true -%}
+{%- else -%}
+    {%- set tcp_input = false -%}
+{%- endif -%}
+{%- if LOG_RELP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set relp_input = true -%}
+{%- else -%}
+    {%- set relp_input = false -%}
+{%- endif -%}
+{%- set log_debug = false -%}
+{%- set log_client_net = ADM_NET_ADDR|replace('"','') + "/" + ADM_NET_CIDR|replace('"','') -%}
+{%- set log_root_dir = LOG_ROOT_DIR | replace('"','') -%}
+# /etc/rsyslog.conf configuration file for rsyslog
+#
+# For more information install rsyslog-doc and see
+# /usr/share/doc/rsyslog-doc/html/configuration/index.html
+#
+# Default logging rules can be found in /etc/rsyslog.d/50-default.conf
+
+#################
+#### MODULES ####
+#################
+
+module(load="imuxsock"     # provides support for local system logging
+        SysSock.Use="off") # Turn off message reception via local log socket;
+                           # local messages are retrieved through imjournal now.
+module(load="imjournal"              # provides support for local systemd structured messages
+        StateFile="imjournal.state") # File to store the position in the journal 
+#module(load="imklog" permitnonkernelfacility="on") # provides kernel logging support and enable non-kernel klog messages; read from journald now
+#module(load="immark")  # provides --MARK-- message capability
+
+{% if udp_input == true -%}
+## provides UDP syslog reception
+module(load="imudp")
+input(type="imudp" port="{{ LOG_UDP_PORT }}" ruleset="remote")
+$AllowedSender UDP, 127.0.0.1, {{ log_client_net }}
+{%- endif %}
+
+{% if tcp_input == true -%}
+## provides TCP syslog reception
+module(load="imtcp")
+input(type="imtcp" port="{{ LOG_TCP_PORT }}")
+$AllowedSender TCP, 127.0.0.1, {{ log_client_net }}
+{%- endif %}
+
+{% if relp_input == true -%}
+## provides RELP syslog reception
+module(load="imrelp")
+input(type="imrelp" port="{{ LOG_RELP_PORT }}")
+$AllowedSender REPL, 127.0.0.1, {{ log_client_net }}
+{%- endif %}
+
+
+###########################
+#### GLOBAL DIRECTIVES ####
+###########################
+
+## ???
+$EscapeControlCharactersOnReceive off
+
+#
+# Use traditional timestamp format.
+# To enable high precision timestamps, comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+# Filter duplicated messages
+$RepeatedMsgReduction on
+
+#
+# Set the default permissions for all log files.
+#
+$FileOwner syslog
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+$PrivDropToUser syslog
+$PrivDropToGroup syslog
+
+#
+# Where to place spool and state files
+#
+$WorkDirectory /var/spool/rsyslog
+
+{% if log_debug == true -%}
+$DebugFile /var/log/rsyslog.debug
+# <0|1|2> - Define debug level
+# 0 disabled
+# 1 on demand debug with debug mode disabled
+# 2 full debug mode
+$DebugLevel 2
+{%- endif %}
+
+
+###################
+#### TEMPLATES ####
+###################
+
+## TODO Improve templates/selectors/actions
+## TODO Add a catchall 'syslog.log' and 'auth.log' files for each host
+$template DynHostnameProg,"{{ log_root_dir }}/%HOSTNAME%/%PROGRAMNAME%.log"
+$template DynHostnameFacility,"{{ log_root_dir }}/%HOSTNAME%/%SYSLOGFACILITY-TEXT%.log"
+template(name="DynFromhostFacility" type="string"
+    string="/var/log/remote/%FROMHOST%/%SYSLOGFACILITY-TEXT%.log")
+
+
+#
+# Include all config files in /etc/rsyslog.d/
+#
+$IncludeConfig /etc/rsyslog.d/*.conf

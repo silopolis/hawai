@@ -1,0 +1,20 @@
+{%- set is_true = IS_TRUE -%}
+{%- if LOG_UDP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set udp_input = true -%}
+{%- else -%}
+    {%- set udp_input = false -%}
+{%- endif -%}
+{%- if LOG_TCP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set tcp_input = true -%}
+{%- else -%}
+    {%- set tcp_input = false -%}
+{%- endif -%}
+{%- if LOG_RELP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set relp_input = true -%}
+{%- else -%}
+    {%- set relp_input = false -%}
+{%- endif -%}
+{%- set log_root_dir = LOG_ROOT_DIR | replace('"','') -%}
+
+## Also centralise localhost logs
+*.* -?DynHostnameFacility

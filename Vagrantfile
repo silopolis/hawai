@@ -56,7 +56,7 @@ Vagrant.configure("2") do |config|
   end
 
   # ------------------------------------------------------------------------------
-  # Admin/Bastion hosts
+  # Admin/Bastion host(s)
   # ------------------------------------------------------------------------------
   # TODO Allow SSH only on Vagrant and public ifaces
   # TODO Add brute force protection
@@ -82,13 +82,61 @@ Vagrant.configure("2") do |config|
           dkr.privileged = true
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
           dkr.name = "#{adm_host_name}"
+
+        log_host_ip = "#{ADM_NET_ROOT}.#{LOG_NET_IPMIN.to_i + i}"
+        log_prov_dir = "/vagrant/#{PROV_DIR}/common"
+        adm.vm.provision "adm-log-config", type: "shell",
+          inline: "/bin/bash #{log_prov_dir}/log-config.sh $*",
+          args: "#{adm_host_name} #{log_host_ip}"
+          #run: "never"
         end
       end
     end
   end
 
+
   # ------------------------------------------------------------------------------
-  # Storage hosts
+  # Log host(s)
+  # ------------------------------------------------------------------------------
+  # TODO Allow SSH only on Vagrant and public ifaces
+  # TODO Add brute force protection
+  # TODO Add one time login support
+  if LOG_HOSTS_NUM != 0
+    (1..LOG_HOSTS_NUM).each do |i|
+      log_host_name = "#{LOG_HOSTS_NAME}#{i}"
+      adm_net_ip = "#{ADM_NET_ROOT}.#{LOG_NET_IPMIN.to_i + i}"
+      log_host_ip = adm_net_ip
+      log_prov_dir = "/vagrant/#{PROV_DIR}/common"
+
+      config.vm.define "#{log_host_name}" do |log|
+        log.vm.hostname = "#{log_host_name}"
+        log.vm.network :private_network,
+          docker_network__opt: "com.docker.network.container_iface_prefix=#{ADM_NET_NAME}",
+          ip: "#{adm_net_ip}", netmask: "#{ADM_NET_CIDR}"
+
+        log.vm.provider "docker" do |dkr|
+          dkr.image="#{LOG_CT_IMAGE}"
+          dkr.has_ssh = true
+          dkr.privileged = true
+          dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
+          dkr.name = "#{log_host_name}"
+
+        log.vm.synced_folder "#{LOG_DATA_DIR}", "#{LOG_ROOT_DIR}",
+          mount_options: ["uid=105", "gid=4"]
+          #owner: "syslog", group: "adm"
+
+        log.vm.provision "adm-log-config", type: "shell",
+          inline: "/bin/bash #{log_prov_dir}/log-config.sh $*",
+          args: "#{log_host_name} #{log_host_ip}"
+          #run: "never"
+        end
+      end
+    end
+  end
+
+
+  # ------------------------------------------------------------------------------
+  # Storage host(s)
   # ------------------------------------------------------------------------------
   # TODO Add NFS/Gluster shared storage support
   if STO_HOSTS_NUM != 0
@@ -114,6 +162,12 @@ Vagrant.configure("2") do |config|
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
         end
 
+      log_host_ip = "#{ADM_NET_ROOT}.#{LOG_NET_IPMIN.to_i + i}"
+      log_prov_dir = "/vagrant/#{PROV_DIR}/common"
+      sto.vm.provision "adm-log-config", type: "shell",
+          inline: "/bin/bash #{log_prov_dir}/log-config.sh $*",
+          args: "#{sto_host_name} #{log_host_ip}"
+          #run: "never"
         # sto.vm.provision "secure-install", type: "shell",
         #   inline: "/bin/sh /vagrant/mariadb-secure-install.sh",
         #   run: "never"
@@ -126,46 +180,52 @@ Vagrant.configure("2") do |config|
 
 
   # ------------------------------------------------------------------------------
-  # DB hosts
+  # Database host(s)
   # ------------------------------------------------------------------------------
   # FIXME ONLY ONE DB host supported
   # TODO Allow dbadmin from remote (admin network) ?
   if DBA_HOSTS_NUM != 0
     (1..DBA_HOSTS_NUM).each do |i|
-      db_host_name = "#{DBA_HOSTS_NAME}#{i}"
+      dba_host_name = "#{DBA_HOSTS_NAME}#{i}"
       adm_net_ip = "#{ADM_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
-      db_host_ip = "#{DBA_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
+      dba_host_ip = "#{DBA_NET_ROOT}.#{DBA_NET_IPMIN.to_i + i}"
       dba_prov_dir = "/vagrant/#{PROV_DIR}/dba"
 
-      config.vm.define "#{db_host_name}" do |db|
-        db.vm.hostname = "#{db_host_name}"
-        db.vm.network :private_network,
+      config.vm.define "#{dba_host_name}" do |dba|
+        dba.vm.hostname = "#{dba_host_name}"
+        dba.vm.network :private_network,
           docker_network__opt: "com.docker.network.container_iface_prefix=#{ADM_NET_NAME}",
           ip: "#{adm_net_ip}", netmask: "#{ADM_NET_CIDR}"
-        db.vm.network :private_network,
+        dba.vm.network :private_network,
           docker_network__opt: "com.docker.network.container_iface_prefix=#{DBA_NET_NAME}",
-          ip: "#{db_host_ip}", netmask: "#{DBA_NET_CIDR}"
+          ip: "#{dba_host_ip}", netmask: "#{DBA_NET_CIDR}"
 
-        db.vm.provider "docker" do |dkr|
+        dba.vm.provider "docker" do |dkr|
           dkr.image = "#{DBA_CT_IMAGE}"
-          dkr.name = "#{db_host_name}"
+          dkr.name = "#{dba_host_name}"
           dkr.has_ssh = true
           dkr.privileged = true
           dkr.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
         end
 
-        db.vm.synced_folder "#{DBA_DATA_DIR}", "#{DBA_ROOT_DIR}",
+        dba.vm.synced_folder "#{DBA_DATA_DIR}", "#{DBA_ROOT_DIR}",
           mount_options: ["uid=106", "gid=107"]
           #owner: "mysql", group: "mysql"
 
-        db.vm.provision "dba-db-install", type: "shell",
+        log_host_ip = "#{ADM_NET_ROOT}.#{LOG_NET_IPMIN.to_i + i}"
+        log_prov_dir = "/vagrant/#{PROV_DIR}/common"
+        dba.vm.provision "adm-log-config", type: "shell",
+            inline: "/bin/bash #{log_prov_dir}/log-config.sh $*",
+            args: "#{dba_host_name} #{log_host_ip}"
+            #run: "never"
+        dba.vm.provision "dba-db-install", type: "shell",
           inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-install.sh"
           #run: "never"
-        db.vm.provision "dba-db-sec_install", type: "shell",
+        dba.vm.provision "dba-db-sec_install", type: "shell",
           inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-sec_install.sh",
-          args: "#{db_host_ip}"
+          args: "#{dba_host_ip}"
           #run: "never"
-        db.vm.provision "dba-db-add", type: "shell",
+        dba.vm.provision "dba-db-add", type: "shell",
           inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-add.sh"
           #run: "never"
       end
@@ -174,7 +234,7 @@ Vagrant.configure("2") do |config|
 
 
   # ------------------------------------------------------------------------------
-  # App hosts
+  # App host(s)
   # ------------------------------------------------------------------------------
   if APP_HOSTS_NUM != 0
     (1..APP_HOSTS_NUM).each do |i|
@@ -210,6 +270,12 @@ Vagrant.configure("2") do |config|
           mount_options: ["uid=33", "gid=33"]
           #owner: "www-data", group: "www-data"
 
+        log_host_ip = "#{ADM_NET_ROOT}.#{LOG_NET_IPMIN.to_i + i}"
+        log_prov_dir = "/vagrant/#{PROV_DIR}/common"
+        app.vm.provision "adm-log-config", type: "shell",
+            inline: "/bin/bash #{log_prov_dir}/log-config.sh $*",
+            args: "#{app_host_name} #{log_host_ip}"
+            #run: "never"
         app.vm.provision "app-#{APP_SVC_NAME}-install",
           type: "shell",
           inline: "/bin/bash #{app_prov_dir}/#{APP_SVC_TYPE}-install.sh $*",
@@ -224,7 +290,7 @@ Vagrant.configure("2") do |config|
 
 
   # ------------------------------------------------------------------------------
-  # Reverse-proxy hosts
+  # Reverse-proxy/Load-balancer hosts
   # ------------------------------------------------------------------------------
   if PXY_HOSTS_NUM != 0
     (1..PXY_HOSTS_NUM).each do |i|
@@ -260,6 +326,12 @@ Vagrant.configure("2") do |config|
           dkr.name = "#{pxy_host_name}"
         end
 
+        log_host_ip = "#{ADM_NET_ROOT}.#{LOG_NET_IPMIN.to_i + i}"
+        log_prov_dir = "/vagrant/#{PROV_DIR}/common"
+        pxy.vm.provision "adm-log-config", type: "shell",
+            inline: "/bin/bash #{log_prov_dir}/log-config.sh $*",
+            args: "#{pxy_host_name} #{log_host_ip}"
+            #run: "never"
         if IS_TRUE.include?(PXY_SSL_ON)    
           pxy.vm.synced_folder "#{SSL_DATA_DIR}", "#{SSL_ROOT_DIR}"
 

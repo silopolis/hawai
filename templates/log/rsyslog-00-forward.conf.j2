@@ -1,0 +1,29 @@
+{%- set is_true = IS_TRUE -%}
+{%- if LOG_UDP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set udp_input = true -%}
+{%- else -%}
+    {%- set udp_input = false -%}
+{%- endif -%}
+{%- if LOG_TCP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set tcp_input = true -%}
+{%- else -%}
+    {%- set tcp_input = false -%}
+{%- endif -%}
+{%- if LOG_RELP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set relp_input = true -%}
+{%- else -%}
+    {%- set relp_input = false -%}
+{%- endif -%}
+{%- set log_debug = false -%}
+{%- set adm_net_root = ADM_NET_ROOT | replace('"','') -%}
+{%- set log_host_ip = LOG_NET_IPMIN | int + 1 -%}
+{%- set log_host_ip = log_host_ip | string -%}
+{%- set log_host_ip = adm_net_root + "." + log_host_ip -%}
+
+{% if udp_input == true -%}
+*.*   @{{ log_host_ip}}:{{ LOG_UDP_PORT }}
+{%- endif %}
+
+{% if udp_input == true -%}
+*.*   @@{{ log_host_ip}}:{{ LOG_TCP_PORT }}
+{% endif %}

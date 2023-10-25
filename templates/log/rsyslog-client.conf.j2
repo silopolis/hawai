@@ -1,0 +1,111 @@
+{%- set is_true = IS_TRUE -%}
+{%- if LOG_UDP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set udp_input = true -%}
+{%- else -%}
+    {%- set udp_input = false -%}
+{%- endif -%}
+{%- if LOG_TCP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set tcp_input = true -%}
+{%- else -%}
+    {%- set tcp_input = false -%}
+{%- endif -%}
+{%- if LOG_RELP_INPUT | replace('"','') | lower in is_true -%}
+    {%- set relp_input = true -%}
+{%- else -%}
+    {%- set relp_input = false -%}
+{%- endif -%}
+{%- set log_debug = false -%}
+{%- set adm_net_root = ADM_NET_ROOT | replace('"','') -%}
+{%- set log_host_ip = LOG_NET_IPMIN | int + 1 -%}
+{%- set log_host_ip = log_host_ip | string -%}
+{%- set log_host_ip = adm_net_root + "." + log_host_ip -%}
+# /etc/rsyslog.conf configuration file for rsyslog
+#
+# For more information install rsyslog-doc and see
+# /usr/share/doc/rsyslog-doc/html/configuration/index.html
+#
+# Default logging rules can be found in /etc/rsyslog.d/50-default.conf
+
+
+#################
+#### MODULES ####
+#################
+
+module(load="imuxsock") # provides support for local system logging
+#module(load="immark")  # provides --MARK-- message capability
+
+{% if udp_input == true -%}
+## provides UDP syslog reception
+module(load="omudp")
+input(type="omudp" port="{{ LOG_UDP_PORT }}")
+{%- endif %}
+{% if tcp_input == true -%}
+## provides TCP syslog reception
+module(load="omtcp")
+input(type="omtcp" port="{{ LOG_TCP_PORT }}")
+{%- endif %}
+{% if relp_input == true -%}
+## provides RELP syslog reception
+module(load="omrelp") #o pour output  
+action(type="omrelp" target="{{ log_host_ip }}" port="{{ LOG_RELP_PORT }}")
+{%- endif %}
+
+# provides kernel logging support and enable non-kernel klog messages
+module(load="imklog" permitnonkernelfacility="on")
+
+###########################
+#### GLOBAL DIRECTIVES ####
+###########################
+
+#
+# Use traditional timestamp format.
+# To enable high precision timestamps, comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+# Filter duplicated messages
+$RepeatedMsgReduction on
+
+#
+# Set the default permissions for all log files.
+#
+$FileOwner syslog
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+$PrivDropToUser syslog
+$PrivDropToGroup syslog
+
+#
+# Where to place spool and state files
+#
+$WorkDirectory /var/spool/rsyslog
+
+# Configure on disk queue for when server is unreachable
+# Exécuter le traitement de façon asynchrone.
+$ActionQueueType LinkedList
+# Préfixe de nom unique pour les fichiers spool.
+# Active également le mode disque.
+$ActionQueueFileName {{ log_host_ip}}.send.queue
+# Limite d'espace de 1 Go.
+$ActionQueueMaxDiskSpace 1g
+# Enregistrer les données sur le disque si Rsyslog est arrêté.
+$ActionQueueSaveOnShutdown on
+# Tentatives infinies en cas d'échec de connexion avec l'hôte.
+$ActionResumeRetryCount -1
+
+{% if log_debug == true -%}
+# Ajouter les deux lignes suivantes :
+$DebugFile /home/USER/Bureau/debug.txt
+$DebugLevel 2
+# <0|1|2> - Définir le niveau de débogage :
+# 0 correspond au mode débogage désactivé.
+# 1 au mode débogage à la demande activé mais le mode débogage désactivé.
+# 2 correspond au mode débogage complet.
+{%- endif %}
+
+#
+# Include all config files in /etc/rsyslog.d/
+#
+$IncludeConfig /etc/rsyslog.d/*.conf

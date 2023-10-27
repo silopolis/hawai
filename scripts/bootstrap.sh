@@ -11,9 +11,9 @@ source .venv/bin/activate
 echo "-- Source '.env' configuration file"
 source .env
 
-./docker/build_images.sh
-
 # TODO Add Docker setup from upstream repository
+
+./scripts/docker_build_images.sh
 
 ./scripts/vagrant_setup.sh
 

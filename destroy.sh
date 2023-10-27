@@ -31,9 +31,12 @@ echo "-- Purge buildx cache"
 docker buildx prune -af
 
 echo "-- Delete data"
-sudo rm -rf data/maria1/mysql/*
-sudo rm -rf data/wpress1/wordpress/*
+sudo rm -rf "$LOG_DATA_DIR"/*
+sudo rm -rf "$DBA_DATA_DIR"/*
+sudo rm -rf "$APP_DATA_DIR"/*
 sudo find data/ssl/ -type f | sudo xargs rm -vf
+sudo find data/ssl/letsencrypt/accounts/acme-v02.api.letsencrypt.org \
+        - type d | sudo xargs rmdir -v
 
 echo "-- Purge Python virtual environment"
 rm -rf .venv

@@ -13,7 +13,7 @@ source .env
 
 # TODO Add Docker setup from upstream repository
 
-./scripts/docker_build_images.sh
+./scripts/docker_build_images.sh --all
 
 ./scripts/vagrant_setup.sh
 

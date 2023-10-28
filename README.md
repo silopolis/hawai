@@ -49,6 +49,22 @@ Layer 2 (bridge) private network for each zone.
 - **log**: log aggregation servers
   - [x] In admin LAN
   - [x] Receive logs from all hosts
+  - [x] Transmit logs using UDP, TCP or RELP
+  - [ ] client: move queue settings to forwarding actions
+  - [ ] Use improve template including priority, facility and severity
+    - Sample format:
+      ```rsyslog
+      template(name="ExtendedFormat" 
+            string="%syslogfacility-text%:%syslogseverity-text%:%timegenerated%:%HOSTNAME%:%msg%\n"
+            )
+      ```
+    - Bind template to action
+      ```rsyslog
+      *.* action(type=”omfile” file=”/var/log/all-messages.log” template=”Name-of-your-template”)
+      ```
+  - [ ] Support sending logs in GELF format
+  - [ ] Secure log transmission using TLS
+  - [ ] Support redundancy and load-balancing
   - [ ] Store logs on persistent storage provided by storage hosts
   - [x] Only accessible from admin hosts
 - **stor**: storage nodes

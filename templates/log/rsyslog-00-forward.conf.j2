@@ -20,10 +20,31 @@
 {%- set log_host_ip = log_host_ip | string -%}
 {%- set log_host_ip = adm_net_root + "." + log_host_ip -%}
 
-{% if udp_input == true -%}
-*.*   @{{ log_host_ip}}:{{ LOG_UDP_PORT }}
-{%- endif %}
+{# {% if udp_input == true -%}
+*.*   @{{ log_host_ip }}:{{ LOG_UDP_PORT }}
+{%- endif %} #}
+
+{# {% if udp_input == true -%}
+*.*   @@{{ log_host_ip }}:{{ LOG_TCP_PORT }}
+{% endif %} #}
 
 {% if udp_input == true -%}
-*.*   @@{{ log_host_ip}}:{{ LOG_TCP_PORT }}
-{% endif %}
+## UDP forwarding
+*.* action(type="omfwd"
+      Target="{{ log_host_ip }}"
+      Port="{{ LOG_UDP_PORT }}"
+      Protocol="udp" )
+{%- endif %}
+{% if tcp_input == true -%}
+## UDP forwarding
+*.* action(type="omfwd"
+      Target="{{ log_host_ip }}"
+      Port="{{ LOG_TCP_PORT }}"
+      Protocol="tcp" )
+{%- endif %}
+{% if relp_input == true -%}
+## RELP forwarding
+*.* action(type="omrelp"
+      target="{{ log_host_ip }}"
+      port="{{ LOG_RELP_PORT }}")
+{%- endif %}

@@ -15,16 +15,13 @@
     {%- set relp_input = false -%}
 {%- endif -%}
 {%- set log_root_dir = LOG_ROOT_DIR | replace('"','') -%}
-
 {# ## Incoming remote logs sorting template
 $template RemoteLogs,"{{ log_root_dir }}/%HOSTNAME%/%PROGRAMNAME%.log"
 *.* ?RemoteLogs
 & ~ #}
-
 ruleset(name="remote"){
-  if ($fromhost-ip != "127.0.0.1") then -?DynaFile
+  if ($fromhost-ip != "127.0.0.1") then -?DynHostnameFacility
 }
-
 
 {# $template DynamicFile,"{{ log_root_dir }}/%HOSTNAME%/forwarded-logs.log" 
 *.* -?DynamicFile #}

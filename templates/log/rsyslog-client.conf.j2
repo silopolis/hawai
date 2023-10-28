@@ -14,7 +14,11 @@
 {%- else -%}
     {%- set relp_input = false -%}
 {%- endif -%}
-{%- set log_debug = false -%}
+{%- if LOG_DEBUG | replace('"','') | lower in is_true -%}
+    {%- set log_debug = true -%}
+{%- else -%}
+    {%- set log_debug = false -%}
+{%- endif -%}
 {%- set adm_net_root = ADM_NET_ROOT | replace('"','') -%}
 {%- set log_host_ip = LOG_NET_IPMIN | int + 1 -%}
 {%- set log_host_ip = log_host_ip | string -%}
@@ -31,27 +35,35 @@
 #### MODULES ####
 #################
 
-module(load="imuxsock") # provides support for local system logging
-#module(load="immark")  # provides --MARK-- message capability
+## Local system logging support
+module(load="imuxsock")
 
-{% if udp_input == true -%}
-## provides UDP syslog reception
-module(load="omudp")
-input(type="omudp" port="{{ LOG_UDP_PORT }}")
-{%- endif %}
-{% if tcp_input == true -%}
-## provides TCP syslog reception
-module(load="omtcp")
-input(type="omtcp" port="{{ LOG_TCP_PORT }}")
-{%- endif %}
-{% if relp_input == true -%}
-## provides RELP syslog reception
-module(load="omrelp") #o pour output  
-action(type="omrelp" target="{{ log_host_ip }}" port="{{ LOG_RELP_PORT }}")
-{%- endif %}
+## Local systemd structured messages support
+## Also specify file to store the position in the journal
+{#- module(load="imjournal"
+    StateFile="imjournal.state"
+    ) -#}
+module(load="imjournal"
+    StateFile="imjournal.state"
+    UsePidFromSystem="on"
+    RateLimit.Burst="500000"
+    RateLimit.Interval="1"
+    IgnorePreviousMessages="on"
+    PersistStateInterval="1000"
+    )
 
-# provides kernel logging support and enable non-kernel klog messages
+## Kernel logging support and enable non-kernel klog messages;
+## Read from journald now
 module(load="imklog" permitnonkernelfacility="on")
+
+## '--MARK--' message capability
+#module(load="immark")
+
+## omfwd module is loaded by default
+{% if relp_input == true -%}
+## RELP forwarding
+module(load="omrelp")
+{%- endif %}
 
 ###########################
 #### GLOBAL DIRECTIVES ####
@@ -96,13 +108,12 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 
 {% if log_debug == true -%}
-# Ajouter les deux lignes suivantes :
-$DebugFile /home/USER/Bureau/debug.txt
+$DebugFile /var/log/rsyslog.debug
+# <0|1|2> - Define debug level
+# 0 disabled
+# 1 on demand debug with debug mode disabled
+# 2 full debug mode
 $DebugLevel 2
-# <0|1|2> - Définir le niveau de débogage :
-# 0 correspond au mode débogage désactivé.
-# 1 au mode débogage à la demande activé mais le mode débogage désactivé.
-# 2 correspond au mode débogage complet.
 {%- endif %}
 
 #

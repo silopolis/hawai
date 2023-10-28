@@ -28,7 +28,7 @@ RUN set -eux; \
     apt-get -qq -y -o=Dpkg::Use-Pty=0 install \
         apt-utils debconf-utils software-properties-common \
         systemd \
-        rsyslog rsyslog-relp \
+        rsyslog rsyslog-relp logrotate \
         ufw;
 
 # FIXME openssh-server setup: invoke-rc.d: policy-rc.d denied execution of start.

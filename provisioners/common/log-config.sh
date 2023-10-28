@@ -12,6 +12,9 @@ tmpl_dir="$TMPL_DIR/log"
 # TODO Create common log provisionner
 # TODO Configure logging on all guests
 
+j2 --format=env "$tmpl_dir/logrotate.conf.j2" .env \
+  > /etc/logrotate.conf
+
 if [[ "$log_host_name" == "log"* ]]; then
   # Configure log host
   j2 --format=env "$tmpl_dir/rsyslog-server.conf.j2" .env \
@@ -23,6 +26,8 @@ if [[ "$log_host_name" == "log"* ]]; then
   j2 --format=env "$tmpl_dir/rsyslog-99-localhost.conf.j2" .env \
     > /etc/rsyslog.d/99-localhost.conf
     #| tee /etc/rsyslog.conf
+  j2 --format=env "$tmpl_dir/logrotate-clients.conf.j2" .env \
+    > /etc/logrotate.d/clients.conf
 else
   # Configure log client/sender
   j2 --format=env "$tmpl_dir/rsyslog-client.conf.j2" .env \

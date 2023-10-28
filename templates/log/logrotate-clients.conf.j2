@@ -1,0 +1,41 @@
+{%- set log_root_dir = LOG_ROOT_DIR | replace('"','') -%}
+{{ log_root_dir }}/*/syslog
+{
+        rotate 7
+        daily
+        missingok
+        notifempty
+        delaycompress
+        compress
+        postrotate
+                /usr/lib/rsyslog/rsyslog-rotate
+        endscript
+}
+
+{{ log_root_dir }}/*/mail.info
+{{ log_root_dir }}/*/mail.warn
+{{ log_root_dir }}/*/mail.err
+{{ log_root_dir }}/*/mail.log
+{{ log_root_dir }}/*/daemon.log
+{{ log_root_dir }}/*/kern.log
+{{ log_root_dir }}/*/auth.log
+{{ log_root_dir }}/*/user.log
+{{ log_root_dir }}/*/lpr.log
+{{ log_root_dir }}/*/cron.log
+{{ log_root_dir }}/*/debug
+{{ log_root_dir }}/*/messages
+{{ log_root_dir }}/*/authpriv.log
+{{ log_root_dir }}/*/lastlog.log
+{{ log_root_dir }}/*/faillog.log
+{
+        rotate 4
+        weekly
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+        postrotate
+                /usr/lib/rsyslog/rsyslog-rotate
+        endscript
+}

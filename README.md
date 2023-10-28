@@ -50,6 +50,8 @@ Layer 2 (bridge) private network for each zone.
   - [x] In admin LAN
   - [x] Receive logs from all hosts
   - [x] Transmit logs using UDP, TCP or RELP
+  - [x] Rotate both hosts and aggregated logs
+    - [ ] Review and "sync config with backup strategy
   - [ ] client: move queue settings to forwarding actions
   - [ ] Use improve template including priority, facility and severity
     - Sample format:

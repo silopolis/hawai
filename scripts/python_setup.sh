@@ -2,8 +2,11 @@
 
 set -e #ux
 
+## Record directory we are called from
 cwd="$(pwd)"
-cd "$(dirname "$0")"
+## Change to project directory
+cd "$(dirname "$0")/.."
+source .env
 
 if [[ ! $(dpkg -s python3-venv) ]]; then
   echo "-- Install Python venv"
@@ -12,16 +15,17 @@ fi
 
 if [ ! -d .venv ]; then
   echo "-- Create Python '.venv' virtual environment"
-  python3 -m venv ../.venv
+  python3 -m venv .venv
 fi
 
 echo "-- Activate Python '.venv' virtual environment"
-source ../.venv/bin/activate
+source .venv/bin/activate
 echo "-- Upgrage Python pip and setuptools in venv"
 pip install --upgrade setuptools pip
 echo "-- Install Python requirements in venv"
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 
 # TODO Add pipx setup ?
 
+## and go back
 cd "$cwd"

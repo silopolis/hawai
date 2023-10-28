@@ -3,12 +3,19 @@
 set -e #ux
 shopt -s dotglob
 
+## Record directory we are called from
+cwd="$(pwd)"
+## Change to project directory
+cd "$(dirname "$0")/.."
 source .env
 
-./scipts/data_purge.sh
+scripts/vagrant_purge.sh "$@"
 
-./scipts/docker_prune.sh
+scripts/docker_prune.sh "$@"
 
-./scipts/data_purge.sh
+scripts/data_purge.sh "$@"
 
-./scipts/python_purge.sh
+scripts/python_purge.sh "$@"
+
+## and go back
+cd "$cwd"

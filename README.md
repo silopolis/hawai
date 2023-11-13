@@ -1,6 +1,6 @@
 # Welcome to H.A.W.A.I. 🌴
 
-The **H**ighly **A**vailable **W**eb **A**pplication **I**nfrastructure project.
+An **H**ighly **A**vailable **W**eb **A**pplication **I**nfrastructure project.
 
 Started as a DevOps bootcamp exercise, this repository aims to aggregated knowledge and bests practices in designing, building and operating an highly available architecture for web application hosting.
 
@@ -54,7 +54,7 @@ Layer 2 (bridge) private network for each zone.
 
 - Hosts have the same IP address (host part) on all networks
 - Admin networks have a subnet large enough to accept all hosts
-- Hosts IP ranges are "stacked", south to north: Admin > Storage > Databases > Applications > Front [> DMZ]
+- Hosts IP ranges are "stacked", south to north: Admin > Storage > Databases > Applications > Front \[> DMZ\]
 
 
 ### L4

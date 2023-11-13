@@ -7,6 +7,7 @@ shopt -s dotglob
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source .env
 
 scripts/vagrant_purge.sh "$@"

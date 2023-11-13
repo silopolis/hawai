@@ -6,6 +6,7 @@ set -e #ux
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source .env
 
 # TODO Add Vagrant install from upstream repository

@@ -3,12 +3,13 @@
 set -e #ux
 shopt -s dotglob
 
-ARGS="$@"
+ARGS="$*"
 
 ## Record directory we are called from
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source .env
 
 if [[ ! "$ARGS" =~ .*"--no-python-purge".* ]]; then

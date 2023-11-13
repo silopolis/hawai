@@ -10,6 +10,7 @@ ARGS="$@"
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source ".env"
 
 if [[ -f "$DOCKER_DIR/$1.dockerfile" ]]; then

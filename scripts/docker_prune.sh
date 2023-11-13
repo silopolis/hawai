@@ -7,6 +7,7 @@ shopt -s dotglob
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source .env
 
 echo "-- Remove Docker containers"
@@ -15,7 +16,7 @@ if [[ "$(docker container ls -q)" ]]; then
   docker rm "$(docker container ls -q)" -f
 fi
 
-if [[ ! "$@" =~ .*"--no-rebuild".* ]]; then
+if [[ ! "$*" =~ .*"--no-rebuild".* ]]; then
   echo "-- Remove Docker images"
   #docker -D image prune -f
   docker image rm "$(docker images -aq)" -f

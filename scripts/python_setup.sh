@@ -6,6 +6,7 @@ set -e #ux
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source .env
 
 if [[ ! $(dpkg -s python3-venv) ]]; then
@@ -19,6 +20,7 @@ if [ ! -d .venv ]; then
 fi
 
 echo "-- Activate Python '.venv' virtual environment"
+# shellcheck source="../.venv/bin/activate"
 source .venv/bin/activate
 echo "-- Upgrage Python pip and setuptools in venv"
 pip install --upgrade setuptools pip

@@ -6,15 +6,19 @@ set -e #ux
 cwd="$(pwd)"
 ## Change to project directory
 cd "$(dirname "$0")/.."
+# shellcheck source="../.env"
 source .env
 
 ./scripts/python_setup.sh "$@"
 
 echo "-- Source shell config in case it's been updated"
-source ~/.profile
+# shellcheck source="$HOME/.profile"
+source "$HOME/.profile"
 echo "-- Activate Python virtual environment"
+# shellcheck source="../.venv/bin/activate"
 source .venv/bin/activate
 echo "-- Source '.env' configuration file"
+# shellcheck source="../.env"
 source .env
 
 # TODO Add Docker setup from upstream repository

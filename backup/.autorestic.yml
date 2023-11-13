@@ -1,0 +1,119 @@
+backends:
+  data-bkp:
+    type: local
+    path: ../backup/repos/data
+    key: B4ckupK3y
+    env: {}
+    rest:
+      user: ""
+      password: ""
+    options:
+      backup:
+        tag:
+          - local
+  setup-bkp:
+    type: local
+    path: ../backup/repos/setup
+    key: B4ckupK3y
+    env: {}
+    rest:
+      user: ""
+      password: ""
+    options:
+      backup:
+        tag:
+          - local
+  containers-bkp:
+    type: local
+    path: ../backup/repos/containers
+    key: B4ckupK3y
+    env: {}
+    rest:
+      user: ""
+      password: ""
+    options:
+      backup:
+        tag:
+          - local
+# extras:
+#   mattermost_fail: &mattermost_fail
+#     failure:
+#       - /DATA/docker/backups/failed_backup.sh ${AUTORESTIC_LOCATION}
+global:
+  all:
+    cache-dir: ../.restic
+  backup:
+    exclude:
+      - .git
+    # exclude-file:
+    # - ../.env.priv
+    tag:
+      - autorestic
+      - backup
+  forget:
+    keep-daily: 7
+    keep-hourly: 24
+    #keep-last: 5
+    keep-monthly: 12
+    keep-weekly: 4
+    #keep-within: 14d
+    #keep-yearly: 1
+  locations:
+    ## Forget after every backup; may be 'no' or 'prune'
+    forget: yes
+    ## Backup everyday at 00:00 by default
+    cron: 0 0 * * *
+locations:
+  containers:
+    from: ../backup/containers/
+    type: ""
+    to: containers-bkp
+    hooks:
+      dir: ""
+      before:
+        - ../scripts/backup.sh container create
+      after:
+        - ../scripts/backup.sh archive delete
+        - ../scripts/backup.sh snaphot remove
+      success: []
+      failure: []
+    cron: ""
+    options:
+      backup:
+        tag:
+          - containers
+  data:
+    from: ../data
+    type: ""
+    to: data-bkp
+    hooks:
+      dir: ""
+      before: []
+      after: []
+      success: []
+      failure: []
+    cron: ""
+    options:
+      backup:
+        tag:
+          - data
+  setup:
+    from:
+      - ../
+    type: ""
+    to: setup-bkp
+    hooks:
+      dir: ""
+      before: []
+      after: []
+      success: []
+      failure: []
+    cron: ""
+    options:
+      backup:
+        exclude:
+          - /**/backup
+          - /**/data
+        tag:
+          - setup
+version: 2

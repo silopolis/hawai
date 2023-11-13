@@ -1,0 +1,360 @@
+
+version: "1"
+
+{{ $SelfDefined := "Self-defined variable" }}
+
+## - Globaln resticprofile and restic options
+global:
+  ## run 'snapshots' when no command is specified when invoking resticprofile
+  default-command: snapshot
+  ## initialize a repository if none exist at location
+  initialize: false
+
+  ## -- Resources management options
+  # Unix IO priority class and level for resticprofile and child processes
+  #ionice: false
+  # unix “ionice-class” to apply when “ionice” is enabled. Must be >= 1 and <= 3
+  #ionice-class: 2
+  # Unix “ionice-level” to apply when “ionice” is enabled. Must be >= 0 and <= 7
+  #ionice-level: 0
+  # Process priority class for resticprofile and child processes (on any OS).
+  # Is one of idle, background, low, normal, high, highest
+  # Priority is using priority class on windows, and "nice" on unixes
+  #priority: low
+  # Unix “nice” value for resticprofile and child processes (on any OS).
+  # Must be >= -20 and <= 19
+  #nice: 0
+  # Minimum available memory (in MB) required to run any commands
+  min-memory: 100
+
+  ## -- Restic locking options
+  ## Time to wait before retrying to get a lock on a restic repository
+  # restic-lock-retry-after: 1m
+  ## Age an unused lock on a restic repository must have at least before
+  ## resiticprofile attempts to unlock
+  # restic-stale-lock-age: 1h
+
+  ## Timeout when sending messages to a webhook
+  # send-timeout: 30s
+
+  ## shell that is used to run commands (default is OS specific).
+  shell: bash
+
+  ## -- Scheduler options
+  ## Leave blank for the default scheduler or use “crond” to select cron
+  # scheduler:
+  ## File containing the go template to generate a systemd timer
+  # systemd-timer-template:
+  ## File containing the go template to generate a systemd unit
+  # systemd-unit-template:
+
+## - Global profile options
+## Put profile options you want applied to all profiles
+generic:
+  ## Describes the profile
+  description: "Generic profile options"
+
+  ## -- Environment options
+  ## Additional environment variables to set in any child process
+  #env:
+  #  TMPDIR: /tmp
+  ## Sets the working directory for this profile.
+  ## The profile will fail when the working directory cannot be changed.
+  ## Leave empty to use the current directory instead
+  # base-dir:
+
+  ## -- Runtime options
+  ## Do not output comprehensive progress report
+  # quiet: false
+  ## Be verbose. `true` for level 1, or a number for increased verbosity,
+  ## max level is 2.
+  # verbose: 0
+
+  ## -- Caching options
+  ## Do not use a local cache
+  # no-cache: false
+  ## Set the cache directory. (default: use system default cache directory)
+  # cache-dir:
+  ## Auto remove old cache directories
+  # cleanup-cache: false
+  ## Path to the status file to update with a summary of last restic command result
+  # status-file:
+  ## Set output mode to JSON for commands that support it
+  # extended-status: false
+
+  ## -- Repository options
+  ## Repository to backup to or restore from.
+  ## you can use a relative path, it will be relative to the configuration file
+  ## resolved from the current working directory where resticprofile
+  ## was started from.
+  ## Default: $RESTIC_REPOSITORY)
+  repository: "{{ .Env.BKP_REPOS_DIR }}/{{ .Profile.Name }}"
+  ## File to read the repository location from.
+  ## Default: $RESTIC_REPOSITORY_FILE). restic >= 0.11.0
+  # repository-file:
+  ## File to read the repository password from.
+  ## Default: $RESTIC_PASSWORD_FILE
+  password-file: "{{ .ConfigDir }}/{{ .Profile.Name }}.key"
+  ## shell command to obtain the repository password from.
+  ## Default: $RESTIC_PASSWORD_COMMAND
+  # password-command:
+  ## Key ID of key to try decrypting first. Default: $RESTIC_KEY_HINT
+  # key-hint:
+  ## Initialize the restic repository if missing
+  initialize: false
+  ## Compression mode (only available for repository format version 2).
+  ## One of auto/off/max, default: $RESTIC_COMPRESSION. restic >= 0.14.0
+  # compression: auto
+  ## set target pack size in MiB, created pack files may be larger.
+  ## Default: $RESTIC_PACK_SIZE. restic >= 0.14.0
+  # pack-size: 0
+
+  ## -- Locking options
+  ## Do not lock the repository.
+  ## This allows some operations on read-only repositories
+  # no-lock: false
+  ## Path to the lock file to use with resticprofile locks
+  ## LOCAL lockfile so you cannot run the same profile more than once at a time
+  ## (it's totally independent of the restic locks on the repository)
+  lock: "{{ .TempDir }}/resticprofile-profile-{{ .Profile.Name }}.lock"
+  ## Retry to lock the repository if it is already locked, takes a value
+  ## like 5m or 2h. Default: 0s, i.e. no retries). restic >= 0.16.0
+  # retry-lock: 0s
+  ## Allows to lock when the existing lock is considered stale
+  force-inactive-lock: false
+
+  ## -- Command hooks options
+  ## Run shell command(s) before a restic command
+  ## will run these scripts before and after each command (including 'backup')
+  run-before:
+    - "echo -- Pre-defined template variables"
+    - "echo -----------------------------------------------------------"
+    - "echo .Env.LOGNAME   = {{ .Env.LOGNAME }}"
+    - "echo .CurrentDir    = {{ .CurrentDir }}"
+    - "echo .ConfigDir     = {{ .ConfigDir }}"
+    - "echo .Profile.Name  = {{ .Profile.Name }}"
+    - "echo .Env.HOME      = {{ .Env.HOME }}"
+    - "echo .StartupDir    = {{ .StartupDir }}"
+    - "echo .ConfigDir     = {{ .ConfigDir }}"
+    - "echo .TempDir       = {{ .TempDir }}"
+    - "echo .BinaryDir     = {{ .BinaryDir }}"
+    - "echo .OS            = {{ .OS }}"
+    - "echo .Arch          = {{ .Arch }}"
+    - "echo .Hostname      = {{ .Hostname }}"
+    - "echo .Env.HOME      = {{ .Env.HOME }}"
+    - "echo .Now.Format \"2006-01-02T15:04:05Z07:00\" = {{ .Now.Format "2006-01-02T15:04:05Z07:00" }}"
+    - "echo "
+    - "echo -- Self-defined template variables"
+    - "echo -----------------------------------------------------------"
+    - "echo '$SelfDefined'   = {{ $SelfDefined }}"
+    - "echo "
+    - "echo -- Runtime variables"
+    - "echo -----------------------------------------------------------"
+    - "echo '${HOME}'   = ${HOME}"
+    - "echo '$HOME'   = $HOME"
+    - "echo "
+  ## Run shell command(s) after a successful restic command
+  run-after: echo All Done!
+  ## Run shell command(s) after failed restic or shell commands
+  # if a restic command fails, the run-after won't be running
+  # add this parameter to run the script in case of a failure
+  run-after-fail: 'echo "ERROR for profile ${PROFILE_NAME}: $ERROR_MESSAGE"'
+  ## Run shell command(s) always, after all other commands
+  run-finally: "echo All done, finally!!!"
+  ## Run shell command(s) when a pattern matches the stderr of restic
+  ## One or more nested StreamErrorSection
+  # stream-error:
+
+  ## -- Prometheus monitoring options
+  ## Additional prometheus labels to set
+  # prometheur-labels: key => string
+  ## URL of the prometheus push gateway to send the summary of the last
+  ## restic command result to
+  # prometheus-push:
+  ## Prometheus push gateway job name.
+  ## $command placeholder is replaced with restic command
+  # prometheus-push-job:
+  ## Path to the prometheus metrics file to update with a summary of the
+  ## last restic command result
+  # prometheus-save-to-file:
+
+  ## -- SSL options
+  ## Path to a file containing PEM encoded TLS client certificate and
+  ## private key. Default: $RESTIC_TLS_CLIENT_CERT
+  # tls-client-cert:
+  ## file to load root certificates from.
+  ## Default: use system certificates or $RESTIC_CACERT
+  # cacert:
+  ## Skip TLS certificate verification when connecting to the repository
+  ## Insecure. restic >= 0.13.0
+  # insecure-tls: false
+
+  ## -- Bandwith limitation options
+  ## Limits downloads to a maximum rate in KiB/s. Default: unlimited.
+  # limit-download:
+  ## limits uploads to a maximum rate in KiB/s. (default: unlimited)
+  # limit-upload:
+
+  ## -- Tagging options
+  ## TODO test this is working
+  # tag:
+  #   - "{{ .Hostname }}"
+  #   - "{{ .Profile.Name }}"
+
+  ## -- Restic additionnal options
+  # option:
+
+  ## -- Profile sections/Command options
+  ## Note: Most restic command flags defined in profile sections below can
+  ## also be set at profile level. They will be inherited in all sections
+  ## that define these flags and ignored in all others.
+  ## `backup` command options
+  backup:
+    ## --- Backup content options
+    ## The base path to resolve relative backup paths against.
+    ## Defaults to current directory if unset or empty.
+    ## See also “base-dir” in profile.
+    # base-source:
+    ## The paths to backup.
+    # source:
+    ## Excludion patterns
+    ## Absolute if specified or relative to the configuration file
+    exclude:
+      - /**/.git
+    ## File(s) to read exclude patterns from
+    # exclude-file:
+    ## Excludes cache directories that are marked with a CACHEDIR.TAG file.
+    ## See https://bford.info/cachedir/ for the Cache Directory Tagging Standard
+    exclude-caches: true
+    ## Exclude contents of directories containing filename (except filename
+    ## itself) if header of that file is as provided. Takes filename[:header].
+    # exclude-if-present
+    ## TODO <-
+    one-file-system: true
+    ## Shell command(s) that generate content to redirect into the stdin of restic. When set, the flag “stdin” is always set to “true”
+    # stdin-command:
+
+    ## --- Runtime options
+    ## do not upload or write any data, just show what would be done.
+    ## dry-run: false
+
+    ## Do not fail the backup when some files could not be read
+    no-error-on-warning: false
+    check-before: false
+    tag:
+      - "{{ .Profile.Name }}"
+    run-before:
+    run-after:
+    run-after-fail:
+    run-finally:
+    # stream-error
+
+    ## --- Scheduling options
+    ## Set names (or glob expressions) of environment variables to capture
+    ## during schedule creation.
+    ## The captured environment is applied prior to “profile.env” when running
+    ## the schedule.
+    ## Whether capturing is supported depends on the type of scheduler being
+    ## used (supported in systemd and “launchd”)
+    # schedule-capture-environment: RESTIC_*
+    # run every 30 minutes
+    schedule: "*:0,30"
+    schedule-permission: user
+    ## Specify how locks are used when running on schedule.
+    ## Is one of default, fail, ignore
+    # schedule-lock-mode: default
+    ## Set the maximum time to wait for acquiring locks when running on schedule.
+    # schedule-lock-wait:
+    ## Redirect the output into a log file or to syslog when running on schedule.
+    ## Can be a file path or syslog server URL like tcp://<server>:<port>
+    # schedule-log:
+    ## Specify whether the schedule runs with system or user privileges
+    ## Is one of auto, system, user, user_logged_on
+    # schedule-permission: auto
+    ## Set the priority at which the schedule is run.
+    ## Is one of background, standard
+    # schedule-priority: background
+
+    ## --- Monitoring options
+    ## Send HTTP request(s) before a restic command
+    # send-before: 
+    ## Send HTTP request(s) after a successful restic command
+    # send-after:
+    ## Send HTTP request(s) after failed restic or shell commands
+    # send-after-fail:
+    ## Send HTTP request(s) always, after all other commands
+    # send-finally:
+
+  # retention policy for profile root
+  # retention is a special section that run the "forget" command
+  # before or after a backup
+  retention:
+    before-backup: false
+    after-backup: true
+    compact: false
+    keep-daily: 1
+    keep-hourly: 1
+    keep-weekly: 1
+    keep-monthly: 1
+    keep-within: 30d
+    keep-tag:
+      - forever
+    prune: true
+    # tag can be a boolean ('true' meaning to copy tag set from 'backup') 
+    # or a custom set of tags.
+    # Default is 'false', meaning that tags are NOT used.
+    tag:
+      - "{{ .Profile.Name }}"
+    # host can be a boolean ('true' meaning current hostname)
+    # or a string to specify a different hostname
+    host: true
+
+  ## Options for the snapshots listing command
+  snapshots:
+    tag:
+      - "{{ .Profile.Name }}"
+
+  # check command of profile src
+  check:
+    read-data: true
+    # check the repository the first day of each month at 3am
+    schedule: "*-*-01 03:00"
+
+# a group is a profile that will call all profiles one by one
+# groups:
+#   # when starting a backup on profile "full-backup",
+#   # it will run the "root" and "src" backup profiles
+#   full-backup:
+#     - root
+#     - src
+
+## Default profile
+## Inherits generic profile options and sets your commonly prefered options
+# Default profile when not specified on the command line (-n or --name)
+# There's no default inheritance from the 'default' profile,
+# you can use the 'inherit' flag if needed
+default:
+  ## Name of the profile to inherit all of the settings from
+  ## Cascading inheritance is not supported
+  inherit: generic
+  password-file: ${BKP_PWD_FILE}
+  ## set the working directory that resticprofile will change into so that
+  ## profiles do no longer depend on the path where you started resticprofile from
+  base-dir: 
+  # you can use a relative path, it will be relative to the configuration file
+  repository: ${BKP_BASE_DIR}
+
+# src:
+#   inherit: generic
+
+  # backup:
+    ## resolved from the current working directory where resticprofile
+    ## was started from.
+    # source:
+    #   - /
+    # - "{{ .Env.HOME }}/go/src"
+
+#   check:
+#     # Weekday is an integer from 0 to 6 (starting from Sunday)
+#     # Nice trick to add 1 to an integer: https://stackoverflow.com/a/72465098
+#     read-data-subset: "{{ len (printf "a%*s" .Now.Weekday "") }}/7"

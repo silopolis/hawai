@@ -1,8 +1,9 @@
-VAGRANT_DEFAULT_PROVIDER = 'docker'
-
 # ------------------------------------------------------------------------------
 # Global configuration
 # ------------------------------------------------------------------------------
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+
 envfile = '.env'
 load envfile if File.exists?(envfile)
 
@@ -18,6 +19,8 @@ Vagrant.configure("2") do |config|
 #  load_env.hostmanager.manage_guest = true
 #  load_env.hostmanager.ignore_private_ip = false
 #  load_env.hostmanager.include_offline = true
+  ## Force SSH pseudo-terminal allocation and make bash act as if it had
+  ## been invoked as a login shell
   config.ssh.extra_args = ["-t", "cd /vagrant; bash -l"]
 
   # ------------------------------------------------------------------------------
@@ -225,6 +228,7 @@ Vagrant.configure("2") do |config|
           inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-sec_install.sh",
           args: "#{dba_host_ip}"
           #run: "never"
+        # TODO Move database creation to app provisioning... where it's always belonged !
         dba.vm.provision "dba-db-add", type: "shell",
           inline: "/bin/bash #{dba_prov_dir}/#{DBA_SVC_TYPE}-db-add.sh"
           #run: "never"

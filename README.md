@@ -1,4 +1,35 @@
-# Vagrant/Docker infrastructure for highly available Web Apps
+# Welcome to H.A.W.A.I. 🌴
+
+The **H**ighly **A**vailable **W**eb **A**pplication **I**nfrastructure project.
+
+Started as a DevOps bootcamp exercise, this repository aims to aggregated knowledge and bests practices in designing, building and operating an highly available architecture for web application hosting.
+
+
+## Compute
+
+In this first implementation it uses the great Vagrant to manage Docker containers.
+
+
+## Provisioning
+
+Provisioning is done using good old Shell scripts but should evolve towards funkier tools and techniques like proper configuration management and/or immutable containers.
+
+
+## Environment and configuration
+
+To begin with, everything is configured with simple so called 'env' files:
+
+- the `.env` file for "public" parameters
+- the `.env.priv` for secrets
+  - included in `.gitignore` for privacy and security
+  - `.env.priv.sample` provided for user to rename and fill-in with its
+    own secrets.
+
+These being sourced/imported by both Ruby (Vagrantfile) and Bash code, content is strictly limited to bare variables/parameters declaration.
+
+This must evolve toward something prettier and more powerful in that multilang context. Main candidate is YAML (surprise!), but jsonnet has dynamic features that may provide just enough declarative smartness to avoid repeating configuration parsing on all sides...
+
+Configuration files are Jinja templates transformed using the handy `j2cli` tool.
 
 
 ## Networks
@@ -23,7 +54,7 @@ Layer 2 (bridge) private network for each zone.
 
 - Hosts have the same IP address (host part) on all networks
 - Admin networks have a subnet large enough to accept all hosts
-- Hosts IPs are "stacked", south to north: Admin > Storage > Databases > Applications > Front [> DMZ]
+- Hosts IP ranges are "stacked", south to north: Admin > Storage > Databases > Applications > Front [> DMZ]
 
 
 ### L4
@@ -46,6 +77,7 @@ Layer 2 (bridge) private network for each zone.
   - [ ] Brute-force protection (fail2ban)
   - [ ] Port-knocking ?
   - [x] Have access to all hosts in the infrastructure on a dedicated administration LAN
+  - [ ] Implement proper Bastion solution (Boundary/Bastillion/The Bastion)
 - **log**: log aggregation servers
   - [x] In admin LAN
   - [x] Receive logs from all hosts
@@ -70,12 +102,14 @@ Layer 2 (bridge) private network for each zone.
   - [ ] Store logs on persistent storage provided by storage hosts
   - [x] Only accessible from admin hosts
 - **stor**: storage nodes
+  - [x] Use Vagrant's local synced folders
+  - [ ] Centralise persistent storage using NFS
   - [ ] Only accessible from admin hosts
   - [ ] On admin and storage networks
   - [ ] Provide persistent storage resources to all other hosts, services and applications on the storage network
 - **bkp**: backup nodes
   - [ ] Only accessible from admin hosts
-  - [ ] On admin and storage networks
+  - [ ] On admin and storage networks (requires storage network setup)
   - [ ] Provide files backup service to all other hosts on the storage network
   - [ ] Provide databases backup service to all other hosts on the storage network
   - [ ] Provide block backup service to all other hosts on the storage network
@@ -115,15 +149,45 @@ Everything is configured with:
 
 ## Scripts
 
-- **`bootstrap.sh`**: launch project from scratch
-- **`prune.sh`**: purge and delete all the things
-- **`pristine.sh`**: run purge.sh and bootstrap.sh in one command.
+- **`bootstrap.sh`**: initialize and launch project from scratch
+  - **`python_setup.sh`**:
+    - [x] Ensures required Python packages are installed
+    - [x] Create project venv
+    - [x] Upgrades pip and setuptools
+    - [x] Installs requirements into venv
+  - [ ] Setup Docker from  distro or upstream
+  - **`docker_build_images.sh`**:
+    - [x] builds images for all dockerfiles in `docker/` directory if run without argument, 
+    - [x] builds a single image if passed the name of a container
+    - [x] does nothing if passed `--no-rebuild`, can be used with `bootstrap.sh`
+  - **`vagrant_setup.sh`**
+    - [ ] Installs Vagrant from distro or upstream
+    - [x] Installs required Vagrant plugins
+  - [x] Launches projet using Vagrant `--no-parallel` option
+- **`purge.sh`**: purge and delete all the things
+  - **`vagrant_purge.sh`**
+    - [x] Uninstalls and revoke SSL certificate before destroying project
+    - [x] Destroys Vagrant project
+    - [x] Removes `.vagrant/` directory
+  - **`docker_prune.sh`**
+    - [x] Removes Docker containers
+    - [x] Removes Docker images
+    - [x] Removes Docker networks
+    - [x] Prunes `buildx`'s cache with `--prune-cache` option; can be used with `prune.sh`
+  - **`data_purge.sh`**
+    - [x] Removes logs
+    - [x] Removes database
+    - [x] Removes files
+    - [x] Removes SSL certificates and keys
+  - **`python_purge.sh`**
+    - [x] Removes virtual environment
+- **`pristine.sh`**: runs `purge.sh` and `bootstrap.sh` in one command.
   For when you want to restart fresh.
 
 
 ## Applications
 
-Currently, only WordPress is supported.
+Currently, only WordPress with MariaDB and NGINX is supported.
 
 
 ## Usage
@@ -132,10 +196,18 @@ Currently, only WordPress is supported.
 ## Configuration
 
 Review and customize the configuration.
-Required: copy/rename the `.env.priv.sample` and set your own secrets
+Required: copy/rename the `.env.priv.sample` to `.env.priv` and set your own secrets
 
 
 ### First run
 
 Execute the `bootstrap.sh` script.
-If no configuration error slipped in and everything goes fine, after a few minutes (or more, depending on your Internet connection and hardware), you should be able to login in the application
+If no configuration error slipped in and everything goes fine, after a few minutes (or more, depending on your Internet connection and hardware), you should be able to
+
+- access the application:
+  - directly, through reverse proxy, or load balancer depending on chosen configuration options
+    Load balancing is automatically enabled when app server number > 1
+  - via bare HTTP or securely via HTTPS with Let's Encrypt managed certificate
+- login to bastion host(s)
+- check logs from all containers on log host(s)
+- access backups of the whole infrastructure on backup host(s)

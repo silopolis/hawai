@@ -7,3 +7,4 @@ backup/.autorestic.lock.yml
 backup/repos
 backup/.autorestic.yml.old
 bin
+*.key
